@@ -5,13 +5,13 @@
     <title>jujube</title>
   </head>
   <body>
-    <main>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.0.13/Tone.js"></script>
+    <main></main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.4.9/Tone.min.js"></script>
     <script src="app.js"></script>
     <script>
       const app = Elm.Main.init({node: document.querySelector("main")});
       app.ports.play.subscribe(function() {
-        var osc = new Tone.Oscillator(440, "sine").toMaster().start();
+        new Tone.Synth().toMaster().triggerAttackRelease("C4", "8n");
       });
     </script>
   </body>
