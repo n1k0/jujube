@@ -10,8 +10,8 @@
     <script src="app.js"></script>
     <script>
       const app = Elm.Main.init({node: document.querySelector("main")});
-      app.ports.play.subscribe(function() {
-        new Tone.Synth().toMaster().triggerAttackRelease("C4", "8n");
+      app.ports.tonePlayNote.subscribe(function({pitch, duration, velocity}) {
+        new Tone.Synth().toMaster().triggerAttackRelease(pitch, duration, undefined, velocity);
       });
     </script>
   </body>
