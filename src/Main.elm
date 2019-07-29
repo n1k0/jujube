@@ -24,7 +24,8 @@ type alias Note =
 
 
 type Msg
-    = Play
+    = Pause
+    | Play
     | SetBeats Int
     | SetBpm Int
     | Stop
@@ -57,17 +58,29 @@ playBeat beat =
     Array.get beat >> Maybe.map tonePlayNote >> Maybe.withDefault Cmd.none
 
 
+cycleBeat : Model -> Int
+cycleBeat { beat, beats } =
+    if beat == beats - 1 then
+        0
+
+    else
+        beat + 1
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Play ->
-            ( { model | playing = True }, playBeat 0 seq )
+            ( { model | playing = True }, playBeat model.beat seq )
 
         SetBeats beats ->
             ( { model | beats = beats }, Cmd.none )
 
         SetBpm bpm ->
             ( { model | bpm = bpm }, Cmd.none )
+
+        Pause ->
+            ( { model | beat = cycleBeat model, playing = False }, Cmd.none )
 
         Stop ->
             ( { model | beat = 0, playing = False }, Cmd.none )
@@ -76,11 +89,7 @@ update msg model =
             if model.playing then
                 let
                     newBeat =
-                        if model.beat == model.beats - 1 then
-                            0
-
-                        else
-                            model.beat + 1
+                        cycleBeat model
                 in
                 ( { model | beat = newBeat }
                 , playBeat newBeat seq
@@ -124,11 +133,9 @@ view model =
             ]
         , div [] [ text <| "Current beat: " ++ String.fromInt (model.beat + 1) ]
         , div []
-            [ if model.playing then
-                button [ onClick Stop ] [ text "stop" ]
-
-              else
-                button [ onClick Play ] [ text "play" ]
+            [ button [ onClick Stop, disabled model.playing ] [ text "stop" ]
+            , button [ onClick Pause, disabled (not model.playing) ] [ text "pause" ]
+            , button [ onClick Play, disabled model.playing ] [ text "play" ]
             ]
         ]
 
