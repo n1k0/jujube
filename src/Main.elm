@@ -9,7 +9,8 @@ import Time exposing (Posix)
 
 
 type alias Model =
-    { bpm : Int
+    { beat : Int
+    , bpm : Int
     , playing : Bool
     }
 
@@ -23,29 +24,36 @@ type Msg
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { bpm = 120, playing = False }, Cmd.none )
+    ( { beat = 1, bpm = 120, playing = False }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Play ->
-            ( { model | playing = True }, Cmd.none )
+            ( { model | playing = True }, Ports.play () )
 
         SetBpm bpm ->
             ( { model | bpm = bpm }, Cmd.none )
 
         Stop ->
-            ( { model | playing = False }, Cmd.none )
+            ( { model | beat = 1, playing = False }, Cmd.none )
 
         Tick posix ->
-            ( model
-            , if model.playing then
-                Ports.play ()
+            if model.playing then
+                ( { model
+                    | beat =
+                        if model.beat == 16 then
+                            1
 
-              else
-                Cmd.none
-            )
+                        else
+                            model.beat + 1
+                  }
+                , Ports.play ()
+                )
+
+            else
+                ( model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -60,6 +68,7 @@ view model =
             ]
             []
         , text (String.fromInt model.bpm)
+        , div [] [ text <| "beat: " ++ String.fromInt model.beat ]
         , div []
             [ if model.playing then
                 button [ onClick Stop ] [ text "stop" ]
@@ -71,8 +80,12 @@ view model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { bpm } =
-    Time.every (60000 / toFloat bpm) Tick
+subscriptions { bpm, playing } =
+    if playing then
+        Time.every (60000 / toFloat bpm) Tick
+
+    else
+        Sub.none
 
 
 main : Program () Model Msg
