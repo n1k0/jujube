@@ -10,6 +10,7 @@ import Time exposing (Posix)
 
 type alias Model =
     { beat : Int
+    , beats : Int
     , bpm : Int
     , playing : Bool
     }
@@ -24,14 +25,10 @@ type alias Note =
 
 type Msg
     = Play
+    | SetBeats Int
     | SetBpm Int
     | Stop
     | Tick Posix
-
-
-nBeats : Int
-nBeats =
-    4
 
 
 seq : Array Note
@@ -46,7 +43,13 @@ seq =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { beat = 0, bpm = 120, playing = False }, Cmd.none )
+    ( { beat = 0
+      , beats = 4
+      , bpm = 120
+      , playing = False
+      }
+    , Cmd.none
+    )
 
 
 playBeat : Int -> Array Note -> Cmd Msg
@@ -60,6 +63,9 @@ update msg model =
         Play ->
             ( { model | playing = True }, playBeat 0 seq )
 
+        SetBeats beats ->
+            ( { model | beats = beats }, Cmd.none )
+
         SetBpm bpm ->
             ( { model | bpm = bpm }, Cmd.none )
 
@@ -70,7 +76,7 @@ update msg model =
             if model.playing then
                 let
                     newBeat =
-                        if model.beat == nBeats - 1 then
+                        if model.beat == model.beats - 1 then
                             0
 
                         else
@@ -87,16 +93,36 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ input
-            [ type_ "range"
-            , HA.min "40"
-            , HA.max "220"
-            , value <| String.fromInt model.bpm
-            , onInput (String.toInt >> Maybe.withDefault 120 >> SetBpm)
+        [ div []
+            [ label []
+                [ text "BPM"
+                , input
+                    [ type_ "range"
+                    , HA.min "40"
+                    , HA.max "220"
+                    , value <| String.fromInt model.bpm
+                    , onInput (String.toInt >> Maybe.withDefault 120 >> SetBpm)
+                    ]
+                    []
+                , text (String.fromInt model.bpm)
+                ]
             ]
-            []
-        , text (String.fromInt model.bpm)
-        , div [] [ text <| "beat: " ++ String.fromInt (model.beat + 1) ]
+        , div []
+            [ label []
+                [ text "Beats"
+                , input
+                    [ type_ "range"
+                    , HA.min "4"
+                    , HA.max "64"
+                    , step "4"
+                    , value <| String.fromInt model.beats
+                    , onInput (String.toInt >> Maybe.withDefault 16 >> SetBeats)
+                    ]
+                    []
+                , text (String.fromInt model.beats)
+                ]
+            ]
+        , div [] [ text <| "Current beat: " ++ String.fromInt (model.beat + 1) ]
         , div []
             [ if model.playing then
                 button [ onClick Stop ] [ text "stop" ]
