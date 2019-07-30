@@ -10,9 +10,46 @@
     <script src="app.js"></script>
     <script>
       const app = Elm.Main.init({node: document.querySelector("main")});
-      app.ports.tonePlayNote.subscribe(function({pitch, duration, velocity}) {
-        new Tone.Synth().toMaster().triggerAttackRelease(pitch, duration, undefined, velocity);
+      app.ports.pauseTransport.subscribe(function() {
+        Tone.Transport.pause();
       });
+      app.ports.setBpm.subscribe(function(bpm) {
+        Tone.Transport.bpm.value = bpm;
+      });
+      app.ports.startTransport.subscribe(function() {
+        Tone.Transport.start();
+      });
+      // new Tone.Synth().toMaster().triggerAttackRelease(pitch, duration, undefined, velocity);
+      app.ports.stopTransport.subscribe(function() {
+        Tone.Transport.stop();
+      });
+
+      app.ports.setSequence.subscribe(function(seq) {
+        var bass = new Tone.MonoSynth({
+          "volume" : -10,
+          "envelope" : {
+            "attack" : 0.1,
+            "decay" : 0.3,
+            "release" : 2,
+          },
+          "filterEnvelope" : {
+            "attack" : 0.001,
+            "decay" : 0.01,
+            "sustain" : 0.5,
+            "baseFrequency" : 200,
+            "octaves" : 2.6
+          }
+        }).toMaster();
+
+        var bassPart = new Tone.Sequence(function(time, note){
+          bass.triggerAttackRelease(note, "16n", time);
+        }, seq).start(0);
+      });
+
+      // start a part at a quantized time
+      //part.start("@1m")
+
+
     </script>
   </body>
 </html>
