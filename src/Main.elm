@@ -2,8 +2,9 @@ module Main exposing (main)
 
 import Array exposing (Array)
 import Browser
-import Data.Sequence exposing (Sequence(..))
-import Data.Track exposing (Track)
+import Data.Scale as Scale exposing (Scale)
+import Data.Sequence as Sequence exposing (Sequence(..))
+import Data.Track as Track exposing (Track)
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
@@ -22,13 +23,6 @@ type alias Model =
     }
 
 
-
--- type alias Note =
---     { pitch : String
---     , velocity : Float
---     }
-
-
 type Msg
     = NewTrack Track
     | Play
@@ -45,107 +39,28 @@ init _ =
     , Cmd.batch
         [ Random.int 80 100
             |> Random.generate SetBpm
-        , randomSequence 1 2
+        , Sequence.random (Scale.range 1 2 Scale.penta)
             |> Random.generate
                 (\seq ->
                     NewTrack
                         { instrument = "tiny"
-                        , pan = 0
-                        , volume = 0
+                        , pan = -0.5
+                        , volume = -8
                         , sequence = seq
                         }
                 )
-        , randomSequence 3 4
+        , Sequence.random (Scale.range 3 5 Scale.penta)
             |> Random.generate
                 (\seq ->
                     NewTrack
                         { instrument = "kalimba"
-                        , pan = 0
-                        , volume = 0
+                        , pan = 0.5
+                        , volume = -12
                         , sequence = seq
                         }
                 )
         ]
     )
-
-
-pickOne : List String -> Generator Sequence
-pickOne =
-    RandomList.choose
-        >> Random.andThen
-            (Tuple.first
-                >> Maybe.map Single
-                >> Maybe.withDefault Silence
-                >> Random.constant
-            )
-
-
-pickMany : Int -> List String -> Generator Sequence
-pickMany length =
-    pickOne
-        >> RandomArray.array length
-        >> Random.andThen (Array.toList >> Multiple >> Random.constant)
-
-
-decideWhat : Int -> Int -> Float -> Generator Sequence
-decideWhat minOctave maxOctave prob =
-    if prob > 0.95 then
-        penta |> scale minOctave maxOctave |> pickMany 3
-
-    else if prob > 0.9 then
-        Random.constant Silence
-
-    else if prob > 0.8 then
-        penta |> scale minOctave maxOctave |> pickOne
-
-    else if prob > 0.4 then
-        penta |> scale minOctave maxOctave |> pickMany 2
-
-    else
-        penta |> scale minOctave maxOctave |> pickMany 4
-
-
-randomSequence : Int -> Int -> Generator Sequence
-randomSequence minOctave maxOctave =
-    Random.float 0 1
-        |> Random.andThen (decideWhat minOctave maxOctave)
-        |> RandomArray.rangeLengthArray 4 8
-        |> Random.andThen (Array.toList >> Multiple >> Random.constant)
-
-
-min7 : List String
-min7 =
-    [ "C", "Eb", "G", "Bb" ]
-
-
-maj7 : List String
-maj7 =
-    [ "C", "E", "G", "B" ]
-
-
-penta : List String
-penta =
-    [ "A", "C", "D", "E", "F", "G" ]
-
-
-scale : Int -> Int -> List String -> List String
-scale minOctave maxOctave notes =
-    List.range minOctave maxOctave
-        |> List.map (\oct -> notes |> List.map (\n -> n ++ String.fromInt oct))
-        |> List.concat
-
-
-encodeSequence : Sequence -> Encode.Value
-encodeSequence seq =
-    case seq of
-        Silence ->
-            Encode.list Encode.string []
-
-        Single note ->
-            Encode.string note
-
-        Multiple subSeq ->
-            Encode.list encodeSequence subSeq
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -160,7 +75,7 @@ update msg model =
             ( { model | playing = True }
             , Cmd.batch
                 [ model.tracks
-                    |> List.map (\{ instrument, sequence } -> Ports.setSequence ( instrument, encodeSequence sequence ))
+                    |> List.map (Track.encode >> Ports.setTrack)
                     |> Cmd.batch
                 , Ports.mute False
                 ]
@@ -202,7 +117,7 @@ view model =
                 (\{ sequence } ->
                     pre []
                         [ sequence
-                            |> encodeSequence
+                            |> Sequence.encode
                             |> Encode.encode 2
                             |> text
                         ]

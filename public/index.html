@@ -22,15 +22,17 @@
         Tone.Transport.bpm.value = bpm;
       });
 
-      app.ports.setSequence.subscribe(function([name, seq]) {
-        let leftPan = new Tone.PanVol(-1, -8);
-        let rightPan = new Tone.PanVol(1, -8);
-        var ping = new Tone.PingPongDelay("8n", 0);
-        const instrument = new Tone.PolySynth(6, Tone.Synth, instruments[name])
-          .chain(rightPan, ping, Tone.Master);
-        parts.push(new Tone.Sequence(function(time, note){
+      app.ports.setTrack.subscribe(function(track) {
+        console.log(track);
+        const panVol = new Tone.PanVol(track.pan, track.volume);
+        // const pingPong = new Tone.PingPongDelay("8n", 0);
+        const instrument = new Tone.PolySynth(6, Tone.Synth, track.instrument)
+          .chain(panVol, Tone.Master);
+        const seq = new Tone.Sequence(function(time, note){
           instrument.triggerAttackRelease(note, "16n", time);
-        }, seq).start(0));
+        }, track.sequence).start(0);
+        seq.probability = .8;
+        parts.push(seq);
       });
     </script>
   </body>
