@@ -40,25 +40,11 @@ init _ =
         [ Random.int 80 100
             |> Random.generate SetBpm
         , Sequence.random (Scale.range 1 2 Scale.penta)
-            |> Random.generate
-                (\seq ->
-                    NewTrack
-                        { instrument = "tiny"
-                        , pan = -0.5
-                        , volume = -8
-                        , sequence = seq
-                        }
-                )
+            |> Random.generate (Track "tiny" -0.5 -8 >> NewTrack)
         , Sequence.random (Scale.range 3 5 Scale.penta)
-            |> Random.generate
-                (\seq ->
-                    NewTrack
-                        { instrument = "kalimba"
-                        , pan = 0.5
-                        , volume = -12
-                        , sequence = seq
-                        }
-                )
+            |> Random.generate (Track "kalimba" 0.5 -12 >> NewTrack)
+        , Sequence.random (Scale.range 5 6 Scale.penta)
+            |> Random.generate (Track "steelpan" 0 -16 >> NewTrack)
         ]
     )
 
