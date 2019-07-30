@@ -8,48 +8,27 @@
     <main></main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.4.9/Tone.min.js"></script>
     <script src="app.js"></script>
+    <script src="inst.js"></script>
     <script>
       const app = Elm.Main.init({node: document.querySelector("main")});
-      app.ports.pauseTransport.subscribe(function() {
-        Tone.Transport.pause();
+      Tone.Transport.start();
+      const parts = [];
+
+      app.ports.mute.subscribe(function(muted) {
+        Tone.Master.mute = muted;
       });
+
       app.ports.setBpm.subscribe(function(bpm) {
         Tone.Transport.bpm.value = bpm;
       });
-      app.ports.startTransport.subscribe(function() {
-        Tone.Transport.start();
+
+      app.ports.setSequence.subscribe(function([name, seq]) {
+        parts.forEach(part => part.stop());
+        const instrument = new Tone.PolySynth(6, Tone.Synth, instruments[name]).toMaster();
+        parts.push(new Tone.Sequence(function(time, note){
+          instrument.triggerAttackRelease(note, "16n", time);
+        }, seq).start(0));
       });
-      // new Tone.Synth().toMaster().triggerAttackRelease(pitch, duration, undefined, velocity);
-      app.ports.stopTransport.subscribe(function() {
-        Tone.Transport.stop();
-      });
-
-      app.ports.setSequence.subscribe(function(seq) {
-        var bass = new Tone.MonoSynth({
-          "volume" : -10,
-          "envelope" : {
-            "attack" : 0.1,
-            "decay" : 0.3,
-            "release" : 2,
-          },
-          "filterEnvelope" : {
-            "attack" : 0.001,
-            "decay" : 0.01,
-            "sustain" : 0.5,
-            "baseFrequency" : 200,
-            "octaves" : 2.6
-          }
-        }).toMaster();
-
-        var bassPart = new Tone.Sequence(function(time, note){
-          bass.triggerAttackRelease(note, "16n", time);
-        }, seq).start(0);
-      });
-
-      // start a part at a quantized time
-      //part.start("@1m")
-
-
     </script>
   </body>
 </html>

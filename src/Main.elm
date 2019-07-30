@@ -7,22 +7,17 @@ import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
 import Json.Encode as Encode
 import Ports
-import Random
+import Random exposing (Generator)
 import Random.Array as RandomArray
+import Random.List as RandomList
 import Time exposing (Posix)
 
 
 type alias Model =
     { bpm : Int
-    , status : Status
+    , playing : Bool
     , tracks : List Track
     }
-
-
-type Status
-    = Paused
-    | Playing
-    | Stopped
 
 
 
@@ -33,12 +28,14 @@ type Status
 
 
 type Sequence
-    = Single String
+    = Silence
+    | Single String
     | Multiple (List Sequence)
 
 
 type alias Track =
-    { pan : Float
+    { instrument : String
+    , pan : Float
     , volume : Float
     , sequence : Sequence
     }
@@ -46,7 +43,6 @@ type alias Track =
 
 type Msg
     = NewTrack Track
-    | Pause
     | Play
     | SetBpm Int
     | Stop
@@ -55,62 +51,98 @@ type Msg
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { bpm = 120
-      , status = Stopped
+      , playing = False
       , tracks = []
       }
     , Cmd.batch
-        [ Ports.setBpm 120
-        , Random.float 0 1
-            |> Random.andThen
-                (\r ->
-                    Random.constant
-                        (if r > 0.5 then
-                            Single "C3"
-
-                         else
-                            Multiple [ Single "Bb2", Single "Eb3" ]
-                        )
-                )
-            |> RandomArray.rangeLengthArray 4 8
+        [ Random.int 80 100
+            |> Random.generate SetBpm
+        , randomSequence
             |> Random.generate
                 (\seq ->
                     NewTrack
-                        { pan = 0.0
-                        , volume = 0.0
-                        , sequence = seq |> Array.toList |> Multiple
+                        { instrument = "tiny"
+                        , pan = 0
+                        , volume = 0
+                        , sequence = seq
                         }
                 )
         ]
     )
 
 
+pickOne : List String -> Generator Sequence
+pickOne =
+    RandomList.choose
+        >> Random.andThen
+            (Tuple.first
+                >> Maybe.map Single
+                >> Maybe.withDefault Silence
+                >> Random.constant
+            )
+
+
+pickMany : Int -> List String -> Generator Sequence
+pickMany length =
+    pickOne
+        >> RandomArray.array length
+        >> Random.andThen (Array.toList >> Multiple >> Random.constant)
+
+
+decideWhat : Float -> Generator Sequence
+decideWhat prob =
+    if prob > 0.95 then
+        penta |> scale 2 4 |> pickMany 3
+
+    else if prob > 0.9 then
+        Random.constant Silence
+
+    else if prob > 0.8 then
+        penta |> scale 2 4 |> pickOne
+
+    else if prob > 0.4 then
+        penta |> scale 2 4 |> pickMany 2
+
+    else
+        penta |> scale 2 4 |> pickMany 4
+
+
+randomSequence : Generator Sequence
+randomSequence =
+    Random.float 0 1
+        |> Random.andThen decideWhat
+        |> RandomArray.rangeLengthArray 4 8
+        |> Random.andThen (Array.toList >> Multiple >> Random.constant)
+
+
+min7 : List String
+min7 =
+    [ "C", "Eb", "G", "Bb" ]
+
+
+maj7 : List String
+maj7 =
+    [ "C", "E", "G", "B" ]
+
+
 penta : List String
 penta =
-    let
-        notes =
-            [ "C", "Eb", "F", "F#", "G", "Bb" ]
-    in
-    List.range 3 4
+    [ "A", "C", "D", "E", "F", "G" ]
+
+
+scale : Int -> Int -> List String -> List String
+scale minOctave maxOctave notes =
+    List.range minOctave maxOctave
         |> List.map (\oct -> notes |> List.map (\n -> n ++ String.fromInt oct))
         |> List.concat
-
-
-bassSequence : Sequence
-bassSequence =
-    -- penta
-    --     |> List.map Single
-    --     |> Multiple
-    Multiple
-        [ Single "C3"
-        , Multiple [ Single "Bb2", Single "C3", Single "Eb3" ]
-        , Single "Bb2"
-        , Multiple [ Single "Bb2", Single "Eb3" ]
-        ]
 
 
 encodeSequence : Sequence -> Encode.Value
 encodeSequence seq =
     case seq of
+        Silence ->
+            Encode.list Encode.string []
+
         Single note ->
             Encode.string note
 
@@ -123,20 +155,24 @@ update msg model =
     case msg of
         NewTrack track ->
             ( { model | tracks = track :: model.tracks }
-            , Ports.setSequence (encodeSequence track.sequence)
+            , Cmd.none
             )
 
-        Pause ->
-            ( { model | status = Paused }, Ports.pauseTransport () )
-
         Play ->
-            ( { model | status = Playing }, Ports.startTransport () )
+            ( { model | playing = True }
+            , Cmd.batch
+                [ model.tracks
+                    |> List.map (\{ instrument, sequence } -> Ports.setSequence ( instrument, encodeSequence sequence ))
+                    |> Cmd.batch
+                , Ports.mute False
+                ]
+            )
 
         SetBpm bpm ->
             ( { model | bpm = bpm }, Ports.setBpm bpm )
 
         Stop ->
-            ( { model | status = Stopped }, Ports.stopTransport () )
+            ( { model | playing = False }, Ports.mute True )
 
 
 view : Model -> Html Msg
@@ -157,13 +193,11 @@ view model =
                 ]
             ]
         , div []
-            [ button [ onClick Stop, disabled (model.status == Stopped) ] [ text "◼" ]
-            , case model.status of
-                Playing ->
-                    button [ onClick Pause ] [ text "▮▮" ]
+            [ if model.playing then
+                button [ onClick Stop ] [ text "◼" ]
 
-                _ ->
-                    button [ onClick Play ] [ text "▶" ]
+              else
+                button [ onClick Play ] [ text "▶" ]
             ]
         , model.tracks
             |> List.map

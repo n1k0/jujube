@@ -1,18 +1,12 @@
-port module Ports exposing (pauseTransport, setBpm, setSequence, startTransport, stopTransport)
+port module Ports exposing (mute, setBpm, setSequence)
 
 import Json.Encode as Encode
 
 
-port pauseTransport : () -> Cmd msg
+port mute : Bool -> Cmd msg
 
 
 port setBpm : Int -> Cmd msg
 
 
-port setSequence : Encode.Value -> Cmd msg
-
-
-port startTransport : () -> Cmd msg
-
-
-port stopTransport : () -> Cmd msg
+port setSequence : ( String, Encode.Value ) -> Cmd msg
