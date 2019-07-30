@@ -2,6 +2,8 @@ module Main exposing (main)
 
 import Array exposing (Array)
 import Browser
+import Data.Sequence exposing (Sequence(..))
+import Data.Track exposing (Track)
 import Html exposing (..)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (..)
@@ -27,20 +29,6 @@ type alias Model =
 --     }
 
 
-type Sequence
-    = Silence
-    | Single String
-    | Multiple (List Sequence)
-
-
-type alias Track =
-    { instrument : String
-    , pan : Float
-    , volume : Float
-    , sequence : Sequence
-    }
-
-
 type Msg
     = NewTrack Track
     | Play
@@ -57,11 +45,21 @@ init _ =
     , Cmd.batch
         [ Random.int 80 100
             |> Random.generate SetBpm
-        , randomSequence
+        , randomSequence 1 2
             |> Random.generate
                 (\seq ->
                     NewTrack
                         { instrument = "tiny"
+                        , pan = 0
+                        , volume = 0
+                        , sequence = seq
+                        }
+                )
+        , randomSequence 3 4
+            |> Random.generate
+                (\seq ->
+                    NewTrack
+                        { instrument = "kalimba"
                         , pan = 0
                         , volume = 0
                         , sequence = seq
@@ -89,28 +87,28 @@ pickMany length =
         >> Random.andThen (Array.toList >> Multiple >> Random.constant)
 
 
-decideWhat : Float -> Generator Sequence
-decideWhat prob =
+decideWhat : Int -> Int -> Float -> Generator Sequence
+decideWhat minOctave maxOctave prob =
     if prob > 0.95 then
-        penta |> scale 2 4 |> pickMany 3
+        penta |> scale minOctave maxOctave |> pickMany 3
 
     else if prob > 0.9 then
         Random.constant Silence
 
     else if prob > 0.8 then
-        penta |> scale 2 4 |> pickOne
+        penta |> scale minOctave maxOctave |> pickOne
 
     else if prob > 0.4 then
-        penta |> scale 2 4 |> pickMany 2
+        penta |> scale minOctave maxOctave |> pickMany 2
 
     else
-        penta |> scale 2 4 |> pickMany 4
+        penta |> scale minOctave maxOctave |> pickMany 4
 
 
-randomSequence : Generator Sequence
-randomSequence =
+randomSequence : Int -> Int -> Generator Sequence
+randomSequence minOctave maxOctave =
     Random.float 0 1
-        |> Random.andThen decideWhat
+        |> Random.andThen (decideWhat minOctave maxOctave)
         |> RandomArray.rangeLengthArray 4 8
         |> Random.andThen (Array.toList >> Multiple >> Random.constant)
 

@@ -12,7 +12,7 @@
     <script>
       const app = Elm.Main.init({node: document.querySelector("main")});
       Tone.Transport.start();
-      const parts = [];
+      let parts = [];
 
       app.ports.mute.subscribe(function(muted) {
         Tone.Master.mute = muted;
@@ -23,8 +23,11 @@
       });
 
       app.ports.setSequence.subscribe(function([name, seq]) {
-        parts.forEach(part => part.stop());
-        const instrument = new Tone.PolySynth(6, Tone.Synth, instruments[name]).toMaster();
+        let leftPan = new Tone.PanVol(-1, -8);
+        let rightPan = new Tone.PanVol(1, -8);
+        var ping = new Tone.PingPongDelay("8n", 0);
+        const instrument = new Tone.PolySynth(6, Tone.Synth, instruments[name])
+          .chain(rightPan, ping, Tone.Master);
         parts.push(new Tone.Sequence(function(time, note){
           instrument.triggerAttackRelease(note, "16n", time);
         }, seq).start(0));
