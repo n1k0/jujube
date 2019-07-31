@@ -1,5 +1,5 @@
 window.instruments = (function() {
-  const bass = new Tone.PolySynth(4, Tone.Synth, {
+  const bass = {
     envelope: {
       attack: 0.1,
       decay: 0.3,
@@ -11,9 +11,9 @@ window.instruments = (function() {
       sustain: 0.5,
       octaves: 2.6
     }
-  });
+  };
 
-  const brass = new Tone.PolySynth(4, Tone.Synth, {
+  const brass = {
     portamento: 0.01,
     oscillator: {
       type: "sawtooth"
@@ -37,9 +37,9 @@ window.instruments = (function() {
       baseFrequency: 2000,
       octaves: 1.5
     }
-  });
+  };
 
-  const cello = new Tone.PolySynth(4, Tone.Synth, {
+  const cello = {
     harmonicity: 3.01,
     modulationIndex: 14,
     oscillator: {
@@ -60,9 +60,9 @@ window.instruments = (function() {
       sustain: 0.2,
       release: 0.1
     }
-  });
+  };
 
-  const kalimba = new Tone.PolySynth(4, Tone.Synth, {
+  const kalimba = {
     harmonicity: 8,
     modulationIndex: 2,
     oscillator: {
@@ -83,9 +83,9 @@ window.instruments = (function() {
       sustain: 0,
       release: 0.2
     }
-  });
+  };
 
-  const marimba = new Tone.PolySynth(4, Tone.Synth, {
+  const marimba = {
     oscillator: {
       partials: [
         1,
@@ -101,9 +101,9 @@ window.instruments = (function() {
       sustain: 0,
       release: 1.2
     }
-  });
+  };
 
-  const piano = new Tone.PolySynth(4, Tone.Synth, {
+  const piano = {
     harmonicity: 2,
     oscillator: {
       type: "amsine2",
@@ -128,9 +128,9 @@ window.instruments = (function() {
       sustain: 0.2,
       release: 0.4
     }
-  });
+  };
 
-  const steelpan = new Tone.PolySynth(4, Tone.Synth, {
+  const steelpan = {
     oscillator: {
       type: "fatcustom",
       partials: [0.2, 1, 0, 0.5, 0.1],
@@ -143,9 +143,9 @@ window.instruments = (function() {
       sustain: 0,
       release: 1.6
     }
-  });
+  };
 
-  const wind = new Tone.PolySynth(4, Tone.Synth, {
+  const wind = {
     portamento: 0.0,
     oscillator: {
       type: "square4"
@@ -156,13 +156,9 @@ window.instruments = (function() {
       sustain: 0.2,
       release: 2
     }
-  });
+  };
 
   // drums
-
-  const kick = new Tone.Player("audio/kick-deep.ogg");
-  const snare = new Tone.Player("audio/snare-electro.ogg");
-  const hihat = new Tone.Player("audio/hihat-electro.ogg");
 
   function loadDrums() {
     return new Promise((resolve, reject) => {
@@ -180,13 +176,10 @@ window.instruments = (function() {
     bass,
     brass,
     cello,
-    hihat,
     kalimba,
-    kick,
     marimba,
     steelpan,
     piano,
-    snare,
     wind,
     loadDrums
   };

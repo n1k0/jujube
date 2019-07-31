@@ -1,11 +1,4 @@
-module Data.Track exposing
-    ( Track
-    , encode
-    , random
-    , randomDrumHiHat
-    , randomDrumKick
-    , randomDrumSnare
-    )
+module Data.Track exposing (Track, encode, random)
 
 import Data.Drum as Drum exposing (Drum)
 import Data.Instrument as Instrument exposing (Instrument)
@@ -56,33 +49,3 @@ random config =
         (config.volume |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -20 -10))
         (Random.constant "4n")
         (Sequence.random (config.bars |> Maybe.withDefault 4) (Scale.range (config.octaves |> Maybe.withDefault ( 1, 6 )) config.scale))
-
-
-randomDrumKick : Config -> Generator Track
-randomDrumKick config =
-    Random.map5 (Track True)
-        (Random.constant Instrument.Kick)
-        (config.pan |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -1 1))
-        (config.volume |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -20 -10))
-        (Random.constant "4n")
-        Drum.randomKick
-
-
-randomDrumSnare : Config -> Generator Track
-randomDrumSnare config =
-    Random.map5 (Track True)
-        (Random.constant Instrument.Snare)
-        (config.pan |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -1 1))
-        (config.volume |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -20 -10))
-        (Random.constant "4n")
-        Drum.randomSnare
-
-
-randomDrumHiHat : Config -> Generator Track
-randomDrumHiHat config =
-    Random.map5 (Track True)
-        (Random.constant Instrument.HiHat)
-        (config.pan |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -1 1))
-        (config.volume |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -20 -10))
-        (Random.constant "4n")
-        Drum.randomHihat

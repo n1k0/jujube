@@ -10,12 +10,6 @@
     <script src="app.js"></script>
     <script src="inst.js"></script>
     <script>
-      document.documentElement.addEventListener("mousedown", function() {
-        if (Tone.context.state !== 'running') {
-          Tone.context.resume();
-        }
-      });
-
       const app = Elm.Main.init({node: document.querySelector("main")});
       let drums;
       let parts = [];
@@ -28,6 +22,7 @@
       }
 
       app.ports.mute.subscribe(function(muted) {
+        Tone.context.resume();
         if (!muted) {
           instruments.loadDrums()
             .then(function(drums) {
@@ -46,17 +41,14 @@
 
       app.ports.setTrack.subscribe(function(track) {
         const panVol = new Tone.PanVol(track.pan, track.volume);
-        // const pingPong = new Tone.PingPongDelay("4n", 0);
-        const instrument = window.instruments[track.instrument].chain(panVol, Tone.Master);
+        const pingPong = new Tone.PingPongDelay("8n", 0);
+        const instrument = new Tone.PolySynth(4, Tone.Synth, instruments[track.instrument])
+          .chain(pingPong, panVol, Tone.Master);
 
         const seq = new Tone.Sequence(function(time, note) {
-          if (track.isDrum) {
-            instrument.start().toMaster();
-          } else {
-            instrument.triggerAttackRelease(note.pitch, note.dur, time, note.vel);
-          }
+          instrument.triggerAttackRelease(note.pitch, note.dur, time, note.vel);
         }, track.sequence).start(0);
-        // seq.probability = .8;
+        seq.probability = .95;
         parts.push(seq);
       });
     </script>

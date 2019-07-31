@@ -59,7 +59,7 @@ generate =
             |> Random.generate NewTrack
         , Track.random
             { bars = Just 6
-            , instrument = Just Instrument.Kalimba
+            , instrument = Just Instrument.Cello
             , octaves = Just ( 3, 3 )
             , pan = Just -0.2
             , scale = Scale.maj7
