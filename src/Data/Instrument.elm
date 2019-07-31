@@ -9,9 +9,12 @@ type Instrument
     = Bass
     | Brass
     | Cello
+    | HiHat
     | Kalimba
+    | Kick
     | Marimba
     | Piano
+    | Snare
     | Steelpan
     | Wind
 
@@ -21,14 +24,14 @@ encode =
     toString >> Encode.string
 
 
-list : List Instrument
-list =
+tonal : List Instrument
+tonal =
     [ Bass, Brass, Cello, Kalimba, Marimba, Piano, Steelpan, Wind ]
 
 
 random : Generator Instrument
 random =
-    RandomList.choose list
+    RandomList.choose tonal
         |> Random.andThen (Tuple.first >> Maybe.withDefault Piano >> Random.constant)
 
 
@@ -47,11 +50,20 @@ toString instrument =
         Kalimba ->
             "kalimba"
 
+        HiHat ->
+            "hihat"
+
+        Kick ->
+            "kick"
+
         Marimba ->
             "marimba"
 
         Piano ->
             "piano"
+
+        Snare ->
+            "snare"
 
         Steelpan ->
             "steelpan"

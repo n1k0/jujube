@@ -53,7 +53,7 @@ generate =
             , instrument = Just Instrument.Piano
             , octaves = Just ( 2, 2 )
             , pan = Just 0
-            , scale = Scale.min7
+            , scale = Scale.maj7
             , volume = Just -8
             }
             |> Random.generate NewTrack
@@ -62,7 +62,7 @@ generate =
             , instrument = Just Instrument.Kalimba
             , octaves = Just ( 3, 3 )
             , pan = Just -0.2
-            , scale = Scale.min7
+            , scale = Scale.maj7
             , volume = Just -14
             }
             |> Random.generate NewTrack
@@ -71,13 +71,10 @@ generate =
             , instrument = Just Instrument.Marimba
             , octaves = Just ( 4, 4 )
             , pan = Just 0.2
-            , scale = Scale.min7
+            , scale = Scale.maj7
             , volume = Just -12
             }
             |> Random.generate NewTrack
-
-        -- , Drum.randomKick
-        --     |> Random.generate NewTrack
         ]
 
 

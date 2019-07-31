@@ -1,4 +1,4 @@
-module Data.Drum exposing (Drum, encode, random)
+module Data.Drum exposing (Drum, encode, randomHihat, randomKick, randomSnare)
 
 import Data.Note as Note exposing (Note)
 import Data.Sequence as Sequence exposing (Sequence(..))
@@ -23,51 +23,51 @@ encode v =
         ]
 
 
+hit : Note
+hit =
+    Note "hit" "16n" 1
+
+
 randomKick : Generator Sequence
 randomKick =
-    Random.float
+    Random.float 0 1
         |> Random.andThen
             (\prob ->
                 if prob > 0.5 then
-                    Random.constant (Multiple [ Single "kick", Silence ])
+                    Random.constant (Multiple [ Single hit, Silence ])
 
                 else
-                    Random.constant (Multiple [ Single "kick" ])
+                    Random.constant (Multiple [ Single hit ])
             )
 
 
 randomSnare : Generator Sequence
 randomSnare =
-    Random.float
+    Random.float 0 1
         |> Random.andThen
             (\prob ->
-                if prob > 0.5 then
-                    Random.constant (Multiple [ Silence, Single "snare" ])
+                if prob < 0.3 then
+                    Random.constant (Multiple [ Silence, Single hit ])
+
+                else if prob < 0.6 then
+                    Random.constant (Multiple [ Multiple [ Single hit, Single hit ] ])
 
                 else
-                    Random.constant (Multiple [ Single "snare" ])
+                    Random.constant (Multiple [ Single hit ])
             )
 
 
 randomHihat : Generator Sequence
 randomHihat =
-    Random.float
+    Random.float 0 1
         |> Random.andThen
             (\prob ->
                 if prob > 0.8 then
-                    Random.constant (Multiple [ Single "snare", Single "snare", Silence, Single "snare" ])
+                    Random.constant (Multiple [ Single hit, Single hit, Silence, Single hit ])
 
                 else if prob > 0.4 then
-                    Random.constant (Multiple [ Multiple [ Single "snare", Single "snare" ] ])
+                    Random.constant (Multiple [ Multiple [ Single hit, Single hit ] ])
 
                 else
-                    Random.constant (Multiple [ Single "snare" ])
+                    Random.constant (Multiple [ Single hit ])
             )
-
-
-random : Generator Drum
-random =
-    Random.map3 Drum
-        randomKick
-        randomSnare
-        randomHihat
