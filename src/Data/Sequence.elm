@@ -1,6 +1,7 @@
 module Data.Sequence exposing (Sequence(..), encode, random)
 
 import Array
+import Data.Note as Note exposing (Note)
 import Json.Encode as Encode
 import Random exposing (Generator)
 import Random.Array as RandomArray
@@ -9,7 +10,7 @@ import Random.List as RandomList
 
 type Sequence
     = Silence
-    | Single String
+    | Single Note
     | Multiple (List Sequence)
 
 
@@ -20,7 +21,7 @@ encode seq =
             Encode.list Encode.string []
 
         Single note ->
-            Encode.string note
+            Note.encode note
 
         Multiple subSeq ->
             Encode.list encode subSeq
@@ -31,9 +32,8 @@ pickOne =
     RandomList.choose
         >> Random.andThen
             (Tuple.first
-                >> Maybe.map Single
-                >> Maybe.withDefault Silence
-                >> Random.constant
+                >> Maybe.map (Note.randomFromPitch >> Random.andThen (Single >> Random.constant))
+                >> Maybe.withDefault (Random.constant Silence)
             )
 
 

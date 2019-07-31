@@ -1,4 +1,4 @@
-module Data.Scale exposing (Scale, maj7, min7, penta, range)
+module Data.Scale exposing (Scale, diat, maj7, min7, penta, range)
 
 
 type Scale
@@ -13,6 +13,11 @@ min7 =
 maj7 : List String
 maj7 =
     [ "C", "E", "G", "B" ]
+
+
+diat : List String
+diat =
+    [ "C", "D", "E", "F", "G", "A", "B" ]
 
 
 penta : List String

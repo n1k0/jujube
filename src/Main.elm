@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Array exposing (Array)
 import Browser
+import Data.Instrument as Instrument exposing (Instrument)
 import Data.Scale as Scale exposing (Scale)
 import Data.Sequence as Sequence exposing (Sequence(..))
 import Data.Track as Track exposing (Track)
@@ -28,6 +29,7 @@ type Msg
     | Play
     | SetBpm Int
     | Stop
+    | Vary
 
 
 init : () -> ( Model, Cmd Msg )
@@ -36,17 +38,18 @@ init _ =
       , playing = False
       , tracks = []
       }
-    , Cmd.batch
-        [ Random.int 80 100
-            |> Random.generate SetBpm
-        , Sequence.random (Scale.range 1 2 Scale.penta)
-            |> Random.generate (Track "tiny" -0.5 -8 >> NewTrack)
-        , Sequence.random (Scale.range 3 5 Scale.penta)
-            |> Random.generate (Track "kalimba" 0.5 -12 >> NewTrack)
-        , Sequence.random (Scale.range 5 6 Scale.penta)
-            |> Random.generate (Track "steelpan" 0 -16 >> NewTrack)
-        ]
+    , generate
     )
+
+
+generate : Cmd Msg
+generate =
+    Cmd.batch
+        [ Random.int 80 100 |> Random.generate SetBpm
+        , Track.random |> Random.generate NewTrack
+        , Track.random |> Random.generate NewTrack
+        , Track.random |> Random.generate NewTrack
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -73,6 +76,9 @@ update msg model =
         Stop ->
             ( { model | playing = False }, Ports.mute True )
 
+        Vary ->
+            ( model, generate )
+
 
 view : Model -> Html Msg
 view model =
@@ -97,13 +103,14 @@ view model =
 
               else
                 button [ onClick Play ] [ text "▶" ]
+            , button [ onClick Vary ] [ text "vary" ]
             ]
         , model.tracks
             |> List.map
-                (\{ sequence } ->
-                    pre []
-                        [ sequence
-                            |> Sequence.encode
+                (\track ->
+                    pre [ style "float" "left" ]
+                        [ track
+                            |> Track.encode
                             |> Encode.encode 2
                             |> text
                         ]

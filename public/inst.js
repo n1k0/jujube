@@ -14,31 +14,54 @@ window.instruments = (function() {
     }
   };
 
-  const tiny = {
+  const brass = {
     volume: -10,
-    harmonicity: 2,
+    portamento: 0.01,
     oscillator: {
-      type: "amsine2",
-      modulationType: "sine",
-      harmonicity: 1.01
+      type: "sawtooth"
+    },
+    filter: {
+      Q: 2,
+      type: "lowpass",
+      rolloff: -24
     },
     envelope: {
-      attack: 0.006,
-      decay: 4,
-      sustain: 0.04,
+      attack: 0.1,
+      decay: 0.1,
+      sustain: 0.6,
+      release: 0.5
+    },
+    filterEnvelope: {
+      attack: 0.05,
+      decay: 0.8,
+      sustain: 0.4,
+      release: 1.5,
+      baseFrequency: 2000,
+      octaves: 1.5
+    }
+  };
+
+  const cello = {
+    volume: -10,
+    harmonicity: 3.01,
+    modulationIndex: 14,
+    oscillator: {
+      type: "triangle"
+    },
+    envelope: {
+      attack: 0.2,
+      decay: 0.3,
+      sustain: 0.1,
       release: 1.2
     },
     modulation: {
-      volume: 13,
-      type: "amsine2",
-      modulationType: "sine",
-      harmonicity: 12
+      type: "square"
     },
     modulationEnvelope: {
-      attack: 0.006,
-      decay: 0.2,
+      attack: 0.01,
+      decay: 0.5,
       sustain: 0.2,
-      release: 0.4
+      release: 0.1
     }
   };
 
@@ -66,73 +89,6 @@ window.instruments = (function() {
     }
   };
 
-  const electricCello = {
-    volume: -10,
-    harmonicity: 3.01,
-    modulationIndex: 14,
-    oscillator: {
-      type: "triangle"
-    },
-    envelope: {
-      attack: 0.2,
-      decay: 0.3,
-      sustain: 0.1,
-      release: 1.2
-    },
-    modulation: {
-      type: "square"
-    },
-    modulationEnvelope: {
-      attack: 0.01,
-      decay: 0.5,
-      sustain: 0.2,
-      release: 0.1
-    }
-  };
-
-  const brassCircuit = {
-    volume: -10,
-    portamento: 0.01,
-    oscillator: {
-      type: "sawtooth"
-    },
-    filter: {
-      Q: 2,
-      type: "lowpass",
-      rolloff: -24
-    },
-    envelope: {
-      attack: 0.1,
-      decay: 0.1,
-      sustain: 0.6,
-      release: 0.5
-    },
-    filterEnvelope: {
-      attack: 0.05,
-      decay: 0.8,
-      sustain: 0.4,
-      release: 1.5,
-      baseFrequency: 2000,
-      octaves: 1.5
-    }
-  };
-
-  const steelpan = {
-    volume: -10,
-    oscillator: {
-      type: "fatcustom",
-      partials: [0.2, 1, 0, 0.5, 0.1],
-      spread: 40,
-      count: 3
-    },
-    envelope: {
-      attack: 0.001,
-      decay: 1.6,
-      sustain: 0,
-      release: 1.6
-    }
-  };
-
   const marimba = {
     volume: -10,
     oscillator: {
@@ -152,6 +108,50 @@ window.instruments = (function() {
     }
   };
 
+  const piano = {
+    volume: -10,
+    harmonicity: 2,
+    oscillator: {
+      type: "amsine2",
+      modulationType: "sine",
+      harmonicity: 1.01
+    },
+    envelope: {
+      attack: 0.006,
+      decay: 4,
+      sustain: 0.04,
+      release: 1.2
+    },
+    modulation: {
+      volume: 13,
+      type: "amsine2",
+      modulationType: "sine",
+      harmonicity: 12
+    },
+    modulationEnvelope: {
+      attack: 0.006,
+      decay: 0.2,
+      sustain: 0.2,
+      release: 0.4
+    }
+  };
+
+  const steelpan = {
+    volume: -10,
+    oscillator: {
+      type: "fatcustom",
+      partials: [0.2, 1, 0, 0.5, 0.1],
+      spread: 40,
+      count: 3
+    },
+    envelope: {
+      attack: 0.001,
+      decay: 1.6,
+      sustain: 0,
+      release: 1.6
+    }
+  };
+
   const wind = {
     volume: -10,
     portamento: 0.0,
@@ -168,12 +168,12 @@ window.instruments = (function() {
 
   return {
     bass,
-    tiny,
+    brass,
+    cello,
     kalimba,
-    electricCello,
-    brassCircuit,
-    steelpan,
     marimba,
+    steelpan,
+    piano,
     wind,
   };
 })();
