@@ -10,7 +10,7 @@ import Random.List as RandomList
 
 
 type alias Track =
-    { isDrum : Bool
+    { id : String
     , instrument : Instrument
     , pan : Float
     , volume : Float
@@ -20,7 +20,8 @@ type alias Track =
 
 
 type alias Config =
-    { bars : Maybe Int
+    { id : String
+    , bars : Maybe Int
     , instrument : Maybe Instrument
     , octaves : Maybe ( Int, Int )
     , pan : Maybe Float
@@ -32,7 +33,7 @@ type alias Config =
 encode : Track -> Encode.Value
 encode v =
     Encode.object
-        [ ( "isDrum", Encode.bool v.isDrum )
+        [ ( "id", Encode.string v.id )
         , ( "instrument", Instrument.encode v.instrument )
         , ( "pan", Encode.float v.pan )
         , ( "volume", Encode.float v.volume )
@@ -43,7 +44,7 @@ encode v =
 
 random : Config -> Generator Track
 random config =
-    Random.map5 (Track False)
+    Random.map5 (Track config.id)
         (config.instrument |> Maybe.map Random.constant >> Maybe.withDefault Instrument.random)
         (config.pan |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -1 1))
         (config.volume |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -20 -10))

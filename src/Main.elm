@@ -40,38 +40,40 @@ init _ =
       , playing = False
       , tracks = []
       }
-    , generate
+    , Random.int 80 100 |> Random.generate SetBpm
     )
 
 
-generate : Cmd Msg
-generate =
+generate : List String -> Cmd Msg
+generate scale =
     Cmd.batch
-        [ Random.int 80 100 |> Random.generate SetBpm
-        , Track.random
-            { bars = Just 4
+        [ Track.random
+            { id = "low"
+            , bars = Just 4
             , instrument = Just Instrument.Piano
             , octaves = Just ( 2, 2 )
             , pan = Just 0
-            , scale = Scale.maj7
+            , scale = scale
             , volume = Just -8
             }
             |> Random.generate NewTrack
         , Track.random
-            { bars = Just 6
+            { id = "mid"
+            , bars = Just 6
             , instrument = Just Instrument.Cello
             , octaves = Just ( 3, 3 )
             , pan = Just -0.2
-            , scale = Scale.maj7
+            , scale = scale
             , volume = Just -14
             }
             |> Random.generate NewTrack
         , Track.random
-            { bars = Just 8
+            { id = "high"
+            , bars = Just 8
             , instrument = Just Instrument.Marimba
             , octaves = Just ( 4, 4 )
             , pan = Just 0.2
-            , scale = Scale.maj7
+            , scale = scale
             , volume = Just -12
             }
             |> Random.generate NewTrack
@@ -82,16 +84,19 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewTrack track ->
-            ( { model | tracks = track :: model.tracks }
-            , Cmd.none
+            ( { model
+                | tracks =
+                    model.tracks
+                        |> List.filter (.id >> (/=) track.id)
+                        |> (::) track
+              }
+            , track |> Track.encode |> Ports.setTrack
             )
 
         Play ->
             ( { model | playing = True }
             , Cmd.batch
-                [ model.tracks
-                    |> List.map (Track.encode >> Ports.setTrack)
-                    |> Cmd.batch
+                [ generate Scale.min7
                 , Ports.mute False
                 ]
             )
@@ -103,7 +108,7 @@ update msg model =
             ( { model | playing = False }, Ports.mute True )
 
         Vary ->
-            ( model, generate )
+            ( { model | tracks = [] }, generate Scale.maj7 )
 
 
 view : Model -> Html Msg

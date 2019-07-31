@@ -12,17 +12,17 @@
     <script>
       const app = Elm.Main.init({node: document.querySelector("main")});
       let drums;
-      let parts = [];
+      let tracks = {};
 
       function drumTrack(drums, hits) {
-        const seq = new Tone.Sequence(function(time, note) {
+        const track = new Tone.Sequence(function(time, note) {
           drums.get(note).start(time).toMaster();
         }, hits).start(0);
-        seq.probability = .95;
+        track.probability = .95;
       }
 
       app.ports.mute.subscribe(function(muted) {
-        Tone.context.resume();
+        Tone.start();
         if (!muted) {
           instruments.loadDrums()
             .then(function(drums) {
@@ -45,11 +45,13 @@
         const instrument = new Tone.PolySynth(4, Tone.Synth, instruments[track.instrument])
           .chain(pingPong, panVol, Tone.Master);
 
-        const seq = new Tone.Sequence(function(time, note) {
+        if (tracks.hasOwnProperty(track.id)) {
+          tracks[track.id].cancel().stop().removeAll().dispose();
+        }
+
+        tracks[track.id] = new Tone.Sequence(function(time, note) {
           instrument.triggerAttackRelease(note.pitch, note.dur, time, note.vel);
         }, track.sequence).start(0);
-        seq.probability = .95;
-        parts.push(seq);
       });
     </script>
   </body>
