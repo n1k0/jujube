@@ -17,6 +17,16 @@ type alias Track =
     }
 
 
+type alias Config =
+    { bars : Maybe Int
+    , instrument : Maybe Instrument
+    , octaves : Maybe ( Int, Int )
+    , pan : Maybe Float
+    , scale : List String
+    , volume : Maybe Float
+    }
+
+
 encode : Track -> Encode.Value
 encode v =
     Encode.object
@@ -28,11 +38,11 @@ encode v =
         ]
 
 
-random : Generator Track
-random =
+random : Config -> Generator Track
+random config =
     Random.map5 Track
-        Instrument.random
-        (Random.float -1 1)
-        (Random.float -20 -10)
+        (config.instrument |> Maybe.map Random.constant >> Maybe.withDefault Instrument.random)
+        (config.pan |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -1 1))
+        (config.volume |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -20 -10))
         (Random.constant "4n")
-        (Sequence.random (Scale.range 1 6 Scale.diat))
+        (Sequence.random (config.bars |> Maybe.withDefault 4) (Scale.range (config.octaves |> Maybe.withDefault ( 1, 6 )) config.scale))

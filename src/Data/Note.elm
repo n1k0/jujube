@@ -14,7 +14,7 @@ type alias Note =
 
 durations : List String
 durations =
-    [ "6n", "8n", "12n", "16n", "32n" ]
+    [ "8n", "12n", "16n", "32n" ]
 
 
 encode : Note -> Encode.Value

@@ -18,7 +18,7 @@ encode : Sequence -> Encode.Value
 encode seq =
     case seq of
         Silence ->
-            Encode.list Encode.string []
+            Encode.null
 
         Single note ->
             Note.encode note
@@ -46,25 +46,25 @@ pickMany length =
 
 decideWhat : List String -> Float -> Generator Sequence
 decideWhat notes prob =
-    if prob > 0.95 then
+    if prob > 0.97 then
         pickMany 3 notes
 
-    else if prob > 0.9 then
+    else if prob > 0.8 then
         Random.constant Silence
 
-    else if prob > 0.8 then
+    else if prob > 0.6 then
         pickOne notes
 
-    else if prob > 0.4 then
+    else if prob > 0.3 then
         pickMany 2 notes
 
     else
         pickMany 4 notes
 
 
-random : List String -> Generator Sequence
-random notes =
+random : Int -> List String -> Generator Sequence
+random bars notes =
     Random.float 0 1
         |> Random.andThen (decideWhat notes)
-        |> RandomArray.rangeLengthArray 4 8
+        |> RandomArray.rangeLengthArray bars bars
         |> Random.andThen (Array.toList >> Multiple >> Random.constant)

@@ -46,9 +46,33 @@ generate : Cmd Msg
 generate =
     Cmd.batch
         [ Random.int 80 100 |> Random.generate SetBpm
-        , Track.random |> Random.generate NewTrack
-        , Track.random |> Random.generate NewTrack
-        , Track.random |> Random.generate NewTrack
+        , Track.random
+            { bars = Just 4
+            , instrument = Just Instrument.Piano
+            , octaves = Just ( 2, 2 )
+            , pan = Just 0
+            , scale = Scale.min7
+            , volume = Just -8
+            }
+            |> Random.generate NewTrack
+        , Track.random
+            { bars = Just 6
+            , instrument = Just Instrument.Kalimba
+            , octaves = Just ( 3, 3 )
+            , pan = Just 2
+            , scale = Scale.min7
+            , volume = Just -14
+            }
+            |> Random.generate NewTrack
+        , Track.random
+            { bars = Just 8
+            , instrument = Just Instrument.Marimba
+            , octaves = Just ( 4, 4 )
+            , pan = Just -2
+            , scale = Scale.min7
+            , volume = Just -12
+            }
+            |> Random.generate NewTrack
         ]
 
 

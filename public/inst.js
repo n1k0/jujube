@@ -1,6 +1,5 @@
 window.instruments = (function() {
   const bass = {
-    volume: -10,
     envelope: {
       attack: 0.1,
       decay: 0.3,
@@ -15,7 +14,6 @@ window.instruments = (function() {
   };
 
   const brass = {
-    volume: -10,
     portamento: 0.01,
     oscillator: {
       type: "sawtooth"
@@ -42,7 +40,6 @@ window.instruments = (function() {
   };
 
   const cello = {
-    volume: -10,
     harmonicity: 3.01,
     modulationIndex: 14,
     oscillator: {
@@ -66,7 +63,6 @@ window.instruments = (function() {
   };
 
   const kalimba = {
-    volume: -10,
     harmonicity: 8,
     modulationIndex: 2,
     oscillator: {
@@ -90,7 +86,6 @@ window.instruments = (function() {
   };
 
   const marimba = {
-    volume: -10,
     oscillator: {
       partials: [
         1,
@@ -109,7 +104,6 @@ window.instruments = (function() {
   };
 
   const piano = {
-    volume: -10,
     harmonicity: 2,
     oscillator: {
       type: "amsine2",
@@ -137,7 +131,6 @@ window.instruments = (function() {
   };
 
   const steelpan = {
-    volume: -10,
     oscillator: {
       type: "fatcustom",
       partials: [0.2, 1, 0, 0.5, 0.1],
@@ -153,7 +146,6 @@ window.instruments = (function() {
   };
 
   const wind = {
-    volume: -10,
     portamento: 0.0,
     oscillator: {
       type: "square4"

@@ -25,8 +25,8 @@ penta =
     [ "A", "C", "D", "E", "F", "G" ]
 
 
-range : Int -> Int -> List String -> List String
-range minOctave maxOctave notes =
-    List.range minOctave maxOctave
+range : ( Int, Int ) -> List String -> List String
+range ( min, max ) notes =
+    List.range min max
         |> List.map (\oct -> notes |> List.map (\n -> n ++ String.fromInt oct))
         |> List.concat
