@@ -55,7 +55,7 @@ decideWhat notes prob =
     else if prob > 0.6 then
         pickOne notes
 
-    else if prob > 0.3 then
+    else if prob > 0.2 then
         pickMany 2 notes
 
     else

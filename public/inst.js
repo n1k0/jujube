@@ -1,5 +1,5 @@
 window.instruments = (function() {
-  const bass = {
+  const bass = new Tone.PolySynth(16, Tone.Synth, {
     envelope: {
       attack: 0.1,
       decay: 0.3,
@@ -11,9 +11,9 @@ window.instruments = (function() {
       sustain: 0.5,
       octaves: 2.6
     }
-  };
+  });
 
-  const brass = {
+  const brass = new Tone.PolySynth(16, Tone.Synth, {
     portamento: 0.01,
     oscillator: {
       type: "sawtooth"
@@ -37,9 +37,9 @@ window.instruments = (function() {
       baseFrequency: 2000,
       octaves: 1.5
     }
-  };
+  });
 
-  const cello = {
+  const cello = new Tone.PolySynth(16, Tone.Synth, {
     harmonicity: 3.01,
     modulationIndex: 14,
     oscillator: {
@@ -60,9 +60,9 @@ window.instruments = (function() {
       sustain: 0.2,
       release: 0.1
     }
-  };
+  });
 
-  const kalimba = {
+  const kalimba = new Tone.PolySynth(16, Tone.Synth, {
     harmonicity: 8,
     modulationIndex: 2,
     oscillator: {
@@ -83,9 +83,9 @@ window.instruments = (function() {
       sustain: 0,
       release: 0.2
     }
-  };
+  });
 
-  const marimba = {
+  const marimba = new Tone.PolySynth(16, Tone.Synth, {
     oscillator: {
       partials: [
         1,
@@ -101,9 +101,9 @@ window.instruments = (function() {
       sustain: 0,
       release: 1.2
     }
-  };
+  });
 
-  const piano = {
+  const piano = new Tone.PolySynth(16, Tone.Synth, {
     harmonicity: 2,
     oscillator: {
       type: "amsine2",
@@ -128,9 +128,9 @@ window.instruments = (function() {
       sustain: 0.2,
       release: 0.4
     }
-  };
+  });
 
-  const steelpan = {
+  const steelpan = new Tone.PolySynth(16, Tone.Synth, {
     oscillator: {
       type: "fatcustom",
       partials: [0.2, 1, 0, 0.5, 0.1],
@@ -143,9 +143,9 @@ window.instruments = (function() {
       sustain: 0,
       release: 1.6
     }
-  };
+  });
 
-  const wind = {
+  const wind = new Tone.PolySynth(16, Tone.Synth, {
     portamento: 0.0,
     oscillator: {
       type: "square4"
@@ -156,7 +156,19 @@ window.instruments = (function() {
       sustain: 0.2,
       release: 2
     }
-  };
+  });
+
+  function loadDrums() {
+    return new Promise((resolve, reject) => {
+      const drums = new Tone.Players({
+        kick: "audio/kick-deep.ogg",
+        snare: "audio/snare-electro.ogg",
+        hihat: "audio/hihat-electro.ogg",
+      }, function() {
+        resolve(drums);
+      });
+    });
+  }
 
   return {
     bass,
@@ -167,5 +179,6 @@ window.instruments = (function() {
     steelpan,
     piano,
     wind,
+    loadDrums
   };
 })();

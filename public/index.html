@@ -10,11 +10,33 @@
     <script src="app.js"></script>
     <script src="inst.js"></script>
     <script>
+      document.documentElement.addEventListener("mousedown", function() {
+        if (Tone.context.state !== 'running') {
+          Tone.context.resume();
+        }
+      });
+
       const app = Elm.Main.init({node: document.querySelector("main")});
-      Tone.Transport.start();
+      let drums;
       let parts = [];
 
       app.ports.mute.subscribe(function(muted) {
+        if (!muted) {
+          Tone.Transport.start();
+          instruments.loadDrums()
+            .then(function(drums_) {
+              drums = window.drums = drums_;
+              new Tone.Sequence(function(time, note) {
+                drums.get(note).start(time).toMaster()
+              }, ["kick", null, "kick", null, "kick", null, "kick", ["kick", "kick"]]).start(0);
+              new Tone.Sequence(function(time, note) {
+                drums.get(note).start(time).toMaster()
+              }, [null, "snare", null, "snare"]).start(0);
+              new Tone.Sequence(function(time, note) {
+                drums.get(note).start(time).toMaster()
+              }, ["hihat"]).start(0);
+            });
+        }
         Tone.Master.mute = muted;
       });
 
@@ -25,9 +47,7 @@
       app.ports.setTrack.subscribe(function(track) {
         const panVol = new Tone.PanVol(track.pan, track.volume);
         // const pingPong = new Tone.PingPongDelay("4n", 0);
-
-        const instrument = new Tone.PolySynth(16, Tone.Synth, window.instruments[track.instrument])
-          .chain(panVol, Tone.Master);
+        const instrument = window.instruments[track.instrument].chain(panVol, Tone.Master);
 
         const seq = new Tone.Sequence(function(time, note){
           instrument.triggerAttackRelease(note.pitch, note.dur, time, note.vel);

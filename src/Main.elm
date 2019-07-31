@@ -1,5 +1,7 @@
 module Main exposing (main)
 
+-- import Data.Drum as Drum exposing (Drum)
+
 import Array exposing (Array)
 import Browser
 import Data.Instrument as Instrument exposing (Instrument)
@@ -59,7 +61,7 @@ generate =
             { bars = Just 6
             , instrument = Just Instrument.Kalimba
             , octaves = Just ( 3, 3 )
-            , pan = Just 2
+            , pan = Just -0.2
             , scale = Scale.min7
             , volume = Just -14
             }
@@ -68,11 +70,14 @@ generate =
             { bars = Just 8
             , instrument = Just Instrument.Marimba
             , octaves = Just ( 4, 4 )
-            , pan = Just -2
+            , pan = Just 0.2
             , scale = Scale.min7
             , volume = Just -12
             }
             |> Random.generate NewTrack
+
+        -- , Drum.randomKick
+        --     |> Random.generate NewTrack
         ]
 
 
