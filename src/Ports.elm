@@ -1,9 +1,12 @@
-port module Ports exposing (mute, setBpm, setTrack)
+port module Ports exposing (setBpm, setTrack, start, stop)
 
 import Json.Encode as Encode
 
 
-port mute : Bool -> Cmd msg
+port start : () -> Cmd msg
+
+
+port stop : () -> Cmd msg
 
 
 port setBpm : Int -> Cmd msg

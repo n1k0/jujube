@@ -97,7 +97,7 @@ update msg model =
             ( { model | playing = True }
             , Cmd.batch
                 [ generate Scale.min7
-                , Ports.mute False
+                , Ports.start ()
                 ]
             )
 
@@ -105,7 +105,7 @@ update msg model =
             ( { model | bpm = bpm }, Ports.setBpm bpm )
 
         Stop ->
-            ( { model | playing = False }, Ports.mute True )
+            ( { model | playing = False }, Ports.stop () )
 
         Vary ->
             ( { model | tracks = [] }, generate Scale.maj7 )

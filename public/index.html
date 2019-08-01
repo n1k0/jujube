@@ -21,18 +21,21 @@
         track.probability = .95;
       }
 
-      app.ports.mute.subscribe(function(muted) {
+      app.ports.start.subscribe(function(muted) {
         Tone.start();
-        if (!muted) {
-          instruments.loadDrums()
-            .then(function(drums) {
-              Tone.Transport.start();
-              drumTrack(drums, ["kick", null, "kick", null, "kick", null, "kick", ["kick", "kick"]]);
-              drumTrack(drums, [null, "snare", null, "snare"]);
-              drumTrack(drums, ["hihat"]);
-            });
-        }
-        Tone.Master.mute = muted;
+        instruments.loadDrums()
+          .then(function(drums) {
+            drumTrack(drums, ["kick", null, "kick", null, "kick", null, "kick", ["kick", "kick"]]);
+            drumTrack(drums, [null, "snare", null, "snare"]);
+            drumTrack(drums, ["hihat"]);
+            Tone.Transport.start();
+          });
+      });
+
+      app.ports.stop.subscribe(function() {
+        Tone.Transport.stop();
+        Tone.Transport.cancel();
+        Tone.Transport.position = 0;
       });
 
       app.ports.setBpm.subscribe(function(bpm) {
