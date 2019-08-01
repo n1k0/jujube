@@ -17,18 +17,28 @@
       let drumKit;
       let tracks = {};
 
-      function drumTrack(drums, sequence) {
-        // FIXME: add to tracks
+      function setTrack(id, sequence, handler) {
+        if (tracks.hasOwnProperty(id)) {
+          tracks[id]
+            .cancel()
+            .stop()
+            .removeAll()
+            .dispose();
+        }
+        tracks[id] = new Tone.Sequence(handler, sequence).start(0);
+        return tracks[id];
+      }
+
+      function drumTrack(id, sequence) {
         const compressor = new Tone.Compressor(-6);
         const feedbackDelay = new Tone.FeedbackDelay("16n", 0.1);
-        const track = new Tone.Sequence(function(time, note) {
-          const hit = drums
+
+        setTrack(id, sequence, function(time, note) {
+          const hit = drumKit
             .get(note.pitch)
             .start(time)
             .chain(compressor, feedbackDelay, Tone.Master);
-        }, sequence).start(0);
-        track.probability = 0.99;
-        return track;
+        }).probability = 0.99;
       }
 
       function loadDrums(samples) {
@@ -69,16 +79,9 @@
       });
 
       app.ports.setDrumTracks.subscribe(function(drums) {
-        const samples = [
-          drums.kick.sample,
-          drums.snare.sample,
-          drums.hihat.sample
-        ];
-        loadDrums(samples).then(function(kit) {
-          drumTrack(kit, drums.kick.sequence);
-          drumTrack(kit, drums.snare.sequence);
-          drumTrack(kit, drums.hihat.sequence);
-        });
+        drumTrack("kick", drums.kick.sequence);
+        drumTrack("snare", drums.snare.sequence);
+        drumTrack("hihat", drums.hihat.sequence);
       });
 
       app.ports.setTrack.subscribe(function(track) {
@@ -90,19 +93,9 @@
           instruments[track.instrument]
         ).chain(pingPong, panVol, Tone.Master);
 
-        if (tracks.hasOwnProperty(track.id)) {
-          tracks[track.id]
-            .cancel()
-            .stop()
-            .removeAll()
-            .dispose();
-        }
-
-        tracks[track.id] = new Tone.Sequence(function(time, note) {
+        setTrack(track.id, track.sequence, function(time, note) {
           instrument.triggerAttackRelease(note.pitch, note.dur, time, note.vel);
-        }, track.sequence).start(0);
-
-        tracks[track.id].probability = track.probability;
+        }).probability = track.probability;
       });
     </script>
   </body>
