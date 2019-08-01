@@ -4,7 +4,7 @@ import Array exposing (Array)
 import Browser
 import Data.Drum as Drum exposing (Drum)
 import Data.Instrument as Instrument exposing (Instrument)
-import Data.Scale as Scale exposing (Scale)
+import Data.Scale as Scale
 import Data.Sequence as Sequence exposing (Sequence(..))
 import Data.Track as Track exposing (Track)
 import Html exposing (..)
@@ -134,7 +134,7 @@ update msg model =
         SetReady _ ->
             ( { model | status = Playing }
             , Cmd.batch
-                [ generate Scale.min7
+                [ generate Scale.first
                 , Ports.start ()
                 ]
             )
@@ -146,7 +146,7 @@ update msg model =
             ( { model | status = Ready }, Ports.stop () )
 
         Vary ->
-            ( { model | tracks = [] }, generate Scale.maj7 )
+            ( { model | tracks = [] }, generate Scale.second )
 
 
 viewTrack : Track -> Html Msg

@@ -1,18 +1,50 @@
-module Data.Scale exposing (Scale, diat, maj7, min7, penta, range)
+module Data.Scale exposing
+    ( diat
+    , fifth
+    , first
+    , fourth
+    , penta
+    , range
+    , second
+    , seventh
+    , sixth
+    , third
+    )
 
 
-type Scale
-    = Scale (List String)
-
-
-min7 : List String
-min7 =
-    [ "C", "Eb", "G", "Bb" ]
-
-
-maj7 : List String
-maj7 =
+first : List String
+first =
     [ "C", "E", "G", "B" ]
+
+
+second : List String
+second =
+    [ "D", "F", "A", "C" ]
+
+
+third : List String
+third =
+    [ "E", "G", "B", "D" ]
+
+
+fourth : List String
+fourth =
+    [ "F", "A", "C", "E" ]
+
+
+fifth : List String
+fifth =
+    [ "G", "B", "D", "F" ]
+
+
+sixth : List String
+sixth =
+    [ "A", "C", "E", "G" ]
+
+
+seventh : List String
+seventh =
+    [ "B", "D", "F", "A" ]
 
 
 diat : List String

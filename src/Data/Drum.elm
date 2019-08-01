@@ -109,8 +109,11 @@ randomHihat =
     DrumKit.randomHihat
         |> randomSeq
             (\hit prob ->
-                if prob > 0.5 then
+                if prob > 0.7 then
                     Multiple [ Single hit, Single hit, Silence, Single hit ]
+
+                else if prob > 0.5 then
+                    Multiple [ Multiple [ Single hit, Single hit ] ]
 
                 else
                     Multiple [ Single hit ]

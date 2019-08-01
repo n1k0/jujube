@@ -2,7 +2,7 @@ module Data.Track exposing (Track, encode, random)
 
 import Data.Drum as Drum exposing (Drum)
 import Data.Instrument as Instrument exposing (Instrument)
-import Data.Scale as Scale exposing (Scale)
+import Data.Scale as Scale
 import Data.Sequence as Sequence exposing (Sequence)
 import Json.Encode as Encode
 import Random exposing (Generator)
