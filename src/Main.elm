@@ -1,9 +1,8 @@
 module Main exposing (main)
 
--- import Data.Drum as Drum exposing (Drum)
-
 import Array exposing (Array)
 import Browser
+import Data.Drum as Drum exposing (Drum)
 import Data.Instrument as Instrument exposing (Instrument)
 import Data.Scale as Scale exposing (Scale)
 import Data.Sequence as Sequence exposing (Sequence(..))
@@ -21,14 +20,23 @@ import Time exposing (Posix)
 
 type alias Model =
     { bpm : Int
-    , playing : Bool
+    , status : Status
     , tracks : List Track
     }
 
 
+type Status
+    = Idle
+    | Loading
+    | Ready
+    | Playing
+
+
 type Msg
-    = NewTrack Track
+    = NewDrumTracks Drum
+    | NewTrack Track
     | Play
+    | SetReady Bool
     | SetBpm Int
     | Stop
     | Vary
@@ -37,7 +45,7 @@ type Msg
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { bpm = 120
-      , playing = False
+      , status = Idle
       , tracks = []
       }
     , Random.int 80 100 |> Random.generate SetBpm
@@ -47,7 +55,9 @@ init _ =
 generate : List String -> Cmd Msg
 generate scale =
     Cmd.batch
-        [ Track.random
+        [ Drum.random
+            |> Random.generate NewDrumTracks
+        , Track.random
             { id = "low"
             , bars = Just 4
             , instrument = Just Instrument.Piano
@@ -97,6 +107,9 @@ generate scale =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NewDrumTracks drumTracks ->
+            ( model, drumTracks |> Drum.encode |> Ports.setDrumTracks )
+
         NewTrack track ->
             ( { model
                 | tracks =
@@ -108,7 +121,18 @@ update msg model =
             )
 
         Play ->
-            ( { model | playing = True }
+            case model.status of
+                Idle ->
+                    ( { model | status = Loading }, Ports.load () )
+
+                Ready ->
+                    ( { model | status = Playing }, Ports.start () )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        SetReady _ ->
+            ( { model | status = Playing }
             , Cmd.batch
                 [ generate Scale.min7
                 , Ports.start ()
@@ -119,7 +143,7 @@ update msg model =
             ( { model | bpm = bpm }, Ports.setBpm bpm )
 
         Stop ->
-            ( { model | playing = False }, Ports.stop () )
+            ( { model | status = Ready }, Ports.stop () )
 
         Vary ->
             ( { model | tracks = [] }, generate Scale.maj7 )
@@ -166,17 +190,31 @@ view model =
                 ]
             ]
         , div []
-            [ if model.playing then
-                button [ onClick Stop ] [ text "◼" ]
+            [ case model.status of
+                Idle ->
+                    button [ onClick Play ] [ text "▶" ]
 
-              else
-                button [ onClick Play ] [ text "▶" ]
-            , button [ onClick Vary ] [ text "vary" ]
+                Loading ->
+                    button [ disabled True ] [ text "▶" ]
+
+                Ready ->
+                    button [ onClick Play ] [ text "▶" ]
+
+                Playing ->
+                    span []
+                        [ button [ onClick Stop ] [ text "◼" ]
+                        , button [ onClick Vary ] [ text "vary" ]
+                        ]
             ]
         , model.tracks
             |> List.map viewTrack
             |> div []
         ]
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Ports.ready SetReady
 
 
 main : Program () Model Msg
@@ -185,5 +223,5 @@ main =
         { init = init
         , update = update
         , view = view
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         }

@@ -1,5 +1,6 @@
-module Data.Drum exposing (Drum, encode, randomHihat, randomKick, randomSnare)
+module Data.Drum exposing (Drum, encode, random)
 
+import Data.Drum.Kit as DrumKit
 import Data.Note as Note exposing (Note)
 import Data.Sequence as Sequence exposing (Sequence(..))
 import Json.Encode as Encode
@@ -8,66 +9,109 @@ import Random.List as RandomList
 
 
 type alias Drum =
-    { kick : Sequence
-    , snare : Sequence
-    , hihat : Sequence
+    { kick : Track
+    , snare : Track
+    , hihat : Track
+    }
+
+
+type alias Track =
+    { sample : String
+    , sequence : Sequence
     }
 
 
 encode : Drum -> Encode.Value
 encode v =
     Encode.object
-        [ ( "kick", Sequence.encode v.kick )
-        , ( "snare", Sequence.encode v.snare )
-        , ( "hihat", Sequence.encode v.hihat )
+        [ ( "kick", encodeTrack v.kick )
+        , ( "snare", encodeTrack v.snare )
+        , ( "hihat", encodeTrack v.hihat )
         ]
 
 
-hit : Note
-hit =
-    Note "hit" "16n" 1
+encodeTrack : Track -> Encode.Value
+encodeTrack v =
+    Encode.object
+        [ ( "sample", Encode.string v.sample )
+        , ( "sequence", Sequence.encode v.sequence )
+        ]
 
 
-randomKick : Generator Sequence
+random : Generator Drum
+random =
+    Random.map3 Drum
+        randomKick
+        randomSnare
+        randomHihat
+
+
+randomSeq : (Note -> Float -> Sequence) -> Generator String -> Generator Track
+randomSeq handler =
+    Random.andThen
+        (\note ->
+            Random.map (Track note)
+                (Random.float 0 1
+                    |> Random.andThen (handler (Note note "16n" 1) >> Random.constant)
+                )
+        )
+
+
+randomKick : Generator Track
 randomKick =
-    Random.float 0 1
-        |> Random.andThen
-            (\prob ->
+    DrumKit.randomKick
+        |> randomSeq
+            (\hit prob ->
                 if prob > 0.5 then
-                    Random.constant (Multiple [ Single hit, Silence ])
+                    Multiple [ Single hit, Silence ]
 
                 else
-                    Random.constant (Multiple [ Single hit ])
+                    Multiple [ Single hit ]
             )
 
 
-randomSnare : Generator Sequence
+randomSnare : Generator Track
 randomSnare =
-    Random.float 0 1
-        |> Random.andThen
-            (\prob ->
-                if prob < 0.3 then
-                    Random.constant (Multiple [ Silence, Single hit ])
+    DrumKit.randomSnare
+        |> randomSeq
+            (\hit prob ->
+                if prob < 0.5 then
+                    Multiple [ Silence, Single hit ]
 
-                else if prob < 0.6 then
-                    Random.constant (Multiple [ Multiple [ Single hit, Single hit ] ])
+                else if prob < 0.75 then
+                    Multiple
+                        [ Silence
+                        , Single hit
+                        , Silence
+                        , Single hit
+                        , Silence
+                        , Single hit
+                        , Silence
+                        , Multiple [ Single hit, Single hit ]
+                        ]
 
                 else
-                    Random.constant (Multiple [ Single hit ])
+                    Multiple
+                        [ Silence
+                        , Single hit
+                        , Silence
+                        , Single hit
+                        , Silence
+                        , Single hit
+                        , Silence
+                        , Multiple [ Single hit, Multiple [ Single hit, Single hit ] ]
+                        ]
             )
 
 
-randomHihat : Generator Sequence
+randomHihat : Generator Track
 randomHihat =
-    Random.float 0 1
-        |> Random.andThen
-            (\prob ->
-                if prob > 0.8 then
-                    Random.constant (Multiple [ Single hit, Single hit, Silence, Single hit ])
-
-                else if prob > 0.4 then
-                    Random.constant (Multiple [ Multiple [ Single hit, Single hit ] ])
+    DrumKit.randomHihat
+        |> randomSeq
+            (\hit prob ->
+                if prob > 0.5 then
+                    Multiple [ Single hit, Single hit, Silence, Single hit ]
 
                 else
-                    Random.constant (Multiple [ Single hit ])
+                    Multiple [ Single hit ]
             )

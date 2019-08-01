@@ -9,12 +9,9 @@ type Instrument
     = Bass
     | Brass
     | Cello
-    | HiHat
     | Kalimba
-    | Kick
     | Marimba
     | Piano
-    | Snare
     | Steelpan
     | Wind
 
@@ -50,20 +47,11 @@ toString instrument =
         Kalimba ->
             "kalimba"
 
-        HiHat ->
-            "hihat"
-
-        Kick ->
-            "kick"
-
         Marimba ->
             "marimba"
 
         Piano ->
             "piano"
-
-        Snare ->
-            "snare"
 
         Steelpan ->
             "steelpan"

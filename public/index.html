@@ -14,37 +14,48 @@
     <script src="meter.js"></script>
     <script>
       const app = Elm.Main.init({ node: document.querySelector("main") });
-      let drums;
+      let drumKit;
       let tracks = {};
 
-      function drumTrack(drums, hits) {
+      function drumTrack(drums, sequence) {
+        // FIXME: add to tracks
+        const compressor = new Tone.Compressor(-6);
+        const feedbackDelay = new Tone.FeedbackDelay("16n", 0.1);
         const track = new Tone.Sequence(function(time, note) {
-          drums
-            .get(note)
+          const hit = drums
+            .get(note.pitch)
             .start(time)
-            .toMaster();
-        }, hits).start(0);
-        track.probability = 0.95;
+            .chain(compressor, feedbackDelay, Tone.Master);
+        }, sequence).start(0);
+        track.probability = 0.99;
+        return track;
       }
 
-      app.ports.start.subscribe(function(muted) {
-        Tone.start();
-        instruments.loadDrums().then(function(drums) {
-          drumTrack(drums, [
-            "kick",
-            null,
-            "kick",
-            null,
-            "kick",
-            null,
-            "kick",
-            ["kick", "kick"]
-          ]);
-          drumTrack(drums, [null, "snare", null, "snare"]);
-          drumTrack(drums, ["hihat"]);
-          Tone.Transport.start();
-          vuMeter(Tone.Master);
+      function loadDrums(samples) {
+        return new Promise((resolve, reject) => {
+          const drums = new Tone.Players(
+            samples.reduce(function(acc, sample) {
+              return { ...acc, [sample]: sample };
+            }, {}),
+            function() {
+              resolve(drums);
+            }
+          );
         });
+      }
+
+      app.ports.load.subscribe(function() {
+        Tone.start();
+        loadDrums(instruments.drumSamples).then(function(result) {
+          drumKit = result;
+          app.ports.ready.send(true);
+        });
+      });
+
+      app.ports.start.subscribe(function(muted) {
+        Tone.Master.chain(new Tone.Limiter(-6));
+        Tone.Transport.start();
+        vuMeter(Tone.Master);
       });
 
       app.ports.stop.subscribe(function() {
@@ -55,6 +66,19 @@
 
       app.ports.setBpm.subscribe(function(bpm) {
         Tone.Transport.bpm.value = bpm;
+      });
+
+      app.ports.setDrumTracks.subscribe(function(drums) {
+        const samples = [
+          drums.kick.sample,
+          drums.snare.sample,
+          drums.hihat.sample
+        ];
+        loadDrums(samples).then(function(kit) {
+          drumTrack(kit, drums.kick.sequence);
+          drumTrack(kit, drums.snare.sequence);
+          drumTrack(kit, drums.hihat.sequence);
+        });
       });
 
       app.ports.setTrack.subscribe(function(track) {
@@ -77,7 +101,8 @@
         tracks[track.id] = new Tone.Sequence(function(time, note) {
           instrument.triggerAttackRelease(note.pitch, note.dur, time, note.vel);
         }, track.sequence).start(0);
-        // tracks[track.id].probability = track.probability;
+
+        tracks[track.id].probability = track.probability;
       });
     </script>
   </body>
