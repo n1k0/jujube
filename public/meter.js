@@ -34,9 +34,6 @@ window.vuMeter = (function() {
     split.right.connect(meters[1]);
 
     const canvas = document.querySelector("canvas");
-    // canvas.width = canvas.clientWidth * 2;
-    // canvas.height = canvas.clientHeight * 2;
-
     const context = canvas.getContext("2d");
 
     loop();

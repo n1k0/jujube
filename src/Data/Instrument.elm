@@ -1,4 +1,4 @@
-module Data.Instrument exposing (Instrument(..), encode, random)
+module Data.Instrument exposing (Instrument(..), encode, random, toString)
 
 import Json.Encode as Encode
 import Random exposing (Generator)

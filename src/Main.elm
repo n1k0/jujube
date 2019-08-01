@@ -125,6 +125,29 @@ update msg model =
             ( { model | tracks = [] }, generate Scale.maj7 )
 
 
+viewTrack : Track -> Html Msg
+viewTrack track =
+    let
+        viewSequence seq =
+            case seq of
+                Silence ->
+                    li [] [ text "silence" ]
+
+                Single { pitch } ->
+                    li [] [ text pitch ]
+
+                Multiple subSeq ->
+                    subSeq |> List.map viewSequence |> ul []
+    in
+    div [ style "float" "left" ]
+        [ div [] [ text track.id ]
+        , div [] [ track.instrument |> Instrument.toString |> text ]
+        , div [] [ text (String.fromFloat track.pan) ]
+        , div [] [ text (String.fromFloat track.volume) ]
+        , div [] [ viewSequence track.sequence ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     div []
@@ -151,15 +174,7 @@ view model =
             , button [ onClick Vary ] [ text "vary" ]
             ]
         , model.tracks
-            |> List.map
-                (\track ->
-                    pre [ style "float" "left" ]
-                        [ track
-                            |> Track.encode
-                            |> Encode.encode 2
-                            |> text
-                        ]
-                )
+            |> List.map viewTrack
             |> div []
         ]
 
