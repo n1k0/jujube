@@ -56,21 +56,20 @@
 
       app.ports.load.subscribe(function() {
         Tone.start();
+        Tone.Master.chain(new Tone.Limiter(-6));
+        vuMeter(Tone.Master);
         loadDrums(instruments.drumSamples).then(function(result) {
           drumKit = result;
           app.ports.ready.send(true);
         });
       });
 
-      app.ports.start.subscribe(function(muted) {
-        Tone.Master.chain(new Tone.Limiter(-6));
+      app.ports.start.subscribe(function() {
         Tone.Transport.start();
-        vuMeter(Tone.Master);
       });
 
       app.ports.stop.subscribe(function() {
         Tone.Transport.stop();
-        Tone.Transport.cancel();
         Tone.Transport.position = 0;
       });
 
