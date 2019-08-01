@@ -4,12 +4,16 @@ module Data.Scale exposing
     , first
     , fourth
     , penta
+    , randomNext
     , range
     , second
     , seventh
     , sixth
     , third
     )
+
+import Random exposing (Generator)
+import Random.List as RandomList
 
 
 first : List String
@@ -62,3 +66,33 @@ range ( min, max ) notes =
     List.range min max
         |> List.map (\oct -> notes |> List.map (\n -> n ++ String.fromInt oct))
         |> List.concat
+
+
+pickOne : List (List String) -> Generator (List String)
+pickOne choices =
+    RandomList.choose choices
+        |> Random.andThen (Tuple.first >> Maybe.withDefault first >> Random.constant)
+
+
+randomNext : List String -> Generator (List String)
+randomNext scale =
+    if scale == first then
+        pickOne [ second, third, fourth, fifth, sixth ]
+
+    else if scale == second then
+        pickOne [ first, third, fourth, fifth, sixth ]
+
+    else if scale == third then
+        pickOne [ first, second, fourth, fifth, sixth ]
+
+    else if scale == fourth then
+        pickOne [ first, second, third, fifth, sixth ]
+
+    else if scale == fifth then
+        pickOne [ first, fourth ]
+
+    else if scale == sixth then
+        pickOne [ first, second, third, fourth, fifth ]
+
+    else
+        Random.constant first

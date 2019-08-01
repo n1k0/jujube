@@ -22,6 +22,7 @@ type alias Model =
     { bpm : Int
     , status : Status
     , tracks : List Track
+    , scale : List String
     }
 
 
@@ -34,6 +35,7 @@ type Status
 
 type Msg
     = NewDrumTracks Drum
+    | NewScale (List String)
     | NewTrack Track
     | Play
     | SetReady Bool
@@ -47,13 +49,14 @@ init _ =
     ( { bpm = 120
       , status = Idle
       , tracks = []
+      , scale = Scale.first
       }
     , Random.int 80 100 |> Random.generate SetBpm
     )
 
 
-generate : List String -> Cmd Msg
-generate scale =
+generate : Model -> Cmd Msg
+generate model =
     Cmd.batch
         [ Drum.random
             |> Random.generate NewDrumTracks
@@ -64,7 +67,7 @@ generate scale =
             , octaves = Just ( 2, 2 )
             , pan = Just 0
             , probability = Just 0.95
-            , scale = scale
+            , scale = model.scale
             , volume = Just -8
             }
             |> Random.generate NewTrack
@@ -75,7 +78,7 @@ generate scale =
             , octaves = Just ( 3, 3 )
             , pan = Just -0.2
             , probability = Just 0.9
-            , scale = scale
+            , scale = model.scale
             , volume = Just -14
             }
             |> Random.generate NewTrack
@@ -86,7 +89,7 @@ generate scale =
             , octaves = Just ( 4, 4 )
             , pan = Just 0.2
             , probability = Just 0.8
-            , scale = scale
+            , scale = model.scale
             , volume = Just -12
             }
             |> Random.generate NewTrack
@@ -97,7 +100,7 @@ generate scale =
             , octaves = Just ( 5, 5 )
             , pan = Just 0.4
             , probability = Just 0.7
-            , scale = scale
+            , scale = model.scale
             , volume = Just -16
             }
             |> Random.generate NewTrack
@@ -120,6 +123,13 @@ update msg model =
             , track |> Track.encode |> Ports.setTrack
             )
 
+        NewScale scale ->
+            let
+                newModel =
+                    { model | scale = scale }
+            in
+            ( newModel, generate newModel )
+
         Play ->
             case model.status of
                 Idle ->
@@ -134,7 +144,7 @@ update msg model =
         SetReady _ ->
             ( { model | status = Playing }
             , Cmd.batch
-                [ generate Scale.first
+                [ generate model
                 , Ports.start ()
                 ]
             )
@@ -146,7 +156,10 @@ update msg model =
             ( { model | status = Ready }, Ports.stop () )
 
         Vary ->
-            ( { model | tracks = [] }, generate Scale.second )
+            ( { model | tracks = [] }
+            , Scale.randomNext model.scale
+                |> Random.generate NewScale
+            )
 
 
 viewTrack : Track -> Html Msg

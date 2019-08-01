@@ -51,48 +51,23 @@ randomHihat : Generator String
 randomHihat =
     pick
         [ "audio/hihat-808.ogg"
-        , "audio/hihat-acoustic01.ogg"
-        , "audio/hihat-acoustic02.ogg"
-        , "audio/hihat-analog.ogg"
         , "audio/hihat-digital.ogg"
-        , "audio/hihat-dist01.ogg"
-        , "audio/hihat-dist02.ogg"
         , "audio/hihat-electro.ogg"
         , "audio/hihat-plain.ogg"
-        , "audio/hihat-reso.ogg"
-        , "audio/hihat-ring.ogg"
         ]
 
 
 randomKick : Generator String
 randomKick =
     pick
-        [ "audio/kick-808.ogg"
-        , "audio/kick-acoustic01.ogg"
-        , "audio/kick-acoustic02.ogg"
-        , "audio/kick-big.ogg"
-        , "audio/kick-classic.ogg"
-        , "audio/kick-cultivator.ogg"
-        , "audio/kick-deep.ogg"
-        , "audio/kick-dry.ogg"
+        [ "audio/kick-deep.ogg"
         , "audio/kick-electro01.ogg"
-        , "audio/kick-electro02.ogg"
         , "audio/kick-floppy.ogg"
-        , "audio/kick-gritty.ogg"
-        , "audio/kick-heavy.ogg"
         , "audio/kick-newwave.ogg"
         , "audio/kick-oldschool.ogg"
-        , "audio/kick-plain.ogg"
-        , "audio/kick-slapback.ogg"
-        , "audio/kick-softy.ogg"
-        , "audio/kick-stomp.ogg"
         , "audio/kick-tape.ogg"
-        , "audio/kick-thump.ogg"
         , "audio/kick-tight.ogg"
         , "audio/kick-tron.ogg"
-        , "audio/kick-vinyl01.ogg"
-        , "audio/kick-vinyl02.ogg"
-        , "audio/kick-zapper.ogg"
         ]
 
 
@@ -143,28 +118,10 @@ randomShaker =
 randomSnare : Generator String
 randomSnare =
     pick
-        [ "audio/snare-808.ogg"
-        , "audio/snare-acoustic01.ogg"
-        , "audio/snare-acoustic02.ogg"
-        , "audio/snare-analog.ogg"
-        , "audio/snare-big.ogg"
-        , "audio/snare-block.ogg"
-        , "audio/snare-brute.ogg"
-        , "audio/snare-dist01.ogg"
-        , "audio/snare-dist02.ogg"
-        , "audio/snare-dist03.ogg"
-        , "audio/snare-electro.ogg"
+        [ "audio/snare-electro.ogg"
         , "audio/snare-lofi01.ogg"
-        , "audio/snare-lofi02.ogg"
-        , "audio/snare-modular.ogg"
         , "audio/snare-noise.ogg"
         , "audio/snare-pinch.ogg"
-        , "audio/snare-punch.ogg"
-        , "audio/snare-smasher.ogg"
-        , "audio/snare-sumo.ogg"
-        , "audio/snare-tape.ogg"
-        , "audio/snare-vinyl01.ogg"
-        , "audio/snare-vinyl02.ogg"
         ]
 
 

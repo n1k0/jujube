@@ -19,29 +19,33 @@
 
       function setTrack(id, sequence, handler) {
         if (tracks.hasOwnProperty(id)) {
+          tracks[id].mute = true;
+          tracks[id].probability = 0;
+          tracks[id].loop = 0;
+          tracks[id].callback = () => {};
           tracks[id]
-            .cancel()
-            .stop()
+            .cancel(0)
+            .stop(0)
             .removeAll()
             .dispose();
         }
+        delete tracks[id];
         tracks[id] = new Tone.Sequence(handler, sequence).start(0);
         return tracks[id];
       }
 
       function drumTrack(id, sequence) {
-        const compressor = new Tone.Compressor(-6);
-        const feedbackDelay = new Tone.FeedbackDelay("16n", 0.1);
-
         setTrack(id, sequence, function(time, note) {
-          const hit = drumKit
-            .get(note.pitch)
-            .start(time)
-            .chain(compressor, feedbackDelay, Tone.Master);
+          drumKit.get(note.pitch).start(time);
         }).probability = 0.99;
       }
 
-      function loadDrums(samples) {
+      function setupDrumKit(samples) {
+        const panVol = new Tone.PanVol(0, -2);
+        const compressor = new Tone.Compressor(-10);
+        const feedbackDelay = new Tone.FeedbackDelay("16n", 0.1);
+        // const reverb = new Tone.Reverb("4n");
+
         return new Promise((resolve, reject) => {
           const drums = new Tone.Players(
             samples.reduce(function(acc, sample) {
@@ -50,7 +54,7 @@
             function() {
               resolve(drums);
             }
-          );
+          ).chain(panVol, feedbackDelay, compressor, Tone.Master);
         });
       }
 
@@ -58,7 +62,7 @@
         Tone.start();
         Tone.Master.chain(new Tone.Limiter(-6));
         vuMeter(Tone.Master);
-        loadDrums(instruments.drumSamples).then(function(result) {
+        setupDrumKit(instruments.drumSamples).then(function(result) {
           drumKit = result;
           app.ports.ready.send(true);
         });
