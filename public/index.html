@@ -1,35 +1,50 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>jujube</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body>
+    <canvas class="vuMeter"></canvas>
     <main></main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.4.9/Tone.min.js"></script>
     <script src="app.js"></script>
     <script src="inst.js"></script>
+    <script src="meter.js"></script>
     <script>
-      const app = Elm.Main.init({node: document.querySelector("main")});
+      const app = Elm.Main.init({ node: document.querySelector("main") });
       let drums;
       let tracks = {};
 
       function drumTrack(drums, hits) {
         const track = new Tone.Sequence(function(time, note) {
-          drums.get(note).start(time).toMaster();
+          drums
+            .get(note)
+            .start(time)
+            .toMaster();
         }, hits).start(0);
-        track.probability = .95;
+        track.probability = 0.95;
       }
 
       app.ports.start.subscribe(function(muted) {
         Tone.start();
-        instruments.loadDrums()
-          .then(function(drums) {
-            drumTrack(drums, ["kick", null, "kick", null, "kick", null, "kick", ["kick", "kick"]]);
-            drumTrack(drums, [null, "snare", null, "snare"]);
-            drumTrack(drums, ["hihat"]);
-            Tone.Transport.start();
-          });
+        instruments.loadDrums().then(function(drums) {
+          drumTrack(drums, [
+            "kick",
+            null,
+            "kick",
+            null,
+            "kick",
+            null,
+            "kick",
+            ["kick", "kick"]
+          ]);
+          drumTrack(drums, [null, "snare", null, "snare"]);
+          drumTrack(drums, ["hihat"]);
+          Tone.Transport.start();
+          vuMeter(Tone.Master);
+        });
       });
 
       app.ports.stop.subscribe(function() {
@@ -45,16 +60,24 @@
       app.ports.setTrack.subscribe(function(track) {
         const panVol = new Tone.PanVol(track.pan, track.volume);
         const pingPong = new Tone.PingPongDelay("8n", 0);
-        const instrument = new Tone.PolySynth(4, Tone.Synth, instruments[track.instrument])
-          .chain(pingPong, panVol, Tone.Master);
+        const instrument = new Tone.PolySynth(
+          4,
+          Tone.Synth,
+          instruments[track.instrument]
+        ).chain(pingPong, panVol, Tone.Master);
 
         if (tracks.hasOwnProperty(track.id)) {
-          tracks[track.id].cancel().stop().removeAll().dispose();
+          tracks[track.id]
+            .cancel()
+            .stop()
+            .removeAll()
+            .dispose();
         }
 
         tracks[track.id] = new Tone.Sequence(function(time, note) {
           instrument.triggerAttackRelease(note.pitch, note.dur, time, note.vel);
         }, track.sequence).start(0);
+        // tracks[track.id].probability = track.probability;
       });
     </script>
   </body>

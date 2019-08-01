@@ -11,10 +11,11 @@ import Random.List as RandomList
 
 type alias Track =
     { id : String
+    , resolution : String
     , instrument : Instrument
     , pan : Float
     , volume : Float
-    , resolution : String
+    , probability : Float
     , sequence : Sequence
     }
 
@@ -26,6 +27,7 @@ type alias Config =
     , octaves : Maybe ( Int, Int )
     , pan : Maybe Float
     , scale : List String
+    , probability : Maybe Float
     , volume : Maybe Float
     }
 
@@ -34,8 +36,10 @@ encode : Track -> Encode.Value
 encode v =
     Encode.object
         [ ( "id", Encode.string v.id )
+        , ( "resolution", Encode.string v.resolution )
         , ( "instrument", Instrument.encode v.instrument )
         , ( "pan", Encode.float v.pan )
+        , ( "probability", Encode.float v.probability )
         , ( "volume", Encode.float v.volume )
         , ( "resolution", Encode.string v.resolution )
         , ( "sequence", Sequence.encode v.sequence )
@@ -44,9 +48,9 @@ encode v =
 
 random : Config -> Generator Track
 random config =
-    Random.map5 (Track config.id)
+    Random.map5 (Track config.id "4n")
         (config.instrument |> Maybe.map Random.constant >> Maybe.withDefault Instrument.random)
         (config.pan |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -1 1))
         (config.volume |> Maybe.map Random.constant |> Maybe.withDefault (Random.float -20 -10))
-        (Random.constant "4n")
+        (config.probability |> Maybe.withDefault 1 >> Random.constant)
         (Sequence.random (config.bars |> Maybe.withDefault 4) (Scale.range (config.octaves |> Maybe.withDefault ( 1, 6 )) config.scale))

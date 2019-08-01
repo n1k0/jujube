@@ -53,6 +53,7 @@ generate scale =
             , instrument = Just Instrument.Piano
             , octaves = Just ( 2, 2 )
             , pan = Just 0
+            , probability = Just 0.95
             , scale = scale
             , volume = Just -8
             }
@@ -63,6 +64,7 @@ generate scale =
             , instrument = Just Instrument.Cello
             , octaves = Just ( 3, 3 )
             , pan = Just -0.2
+            , probability = Just 0.9
             , scale = scale
             , volume = Just -14
             }
@@ -73,8 +75,20 @@ generate scale =
             , instrument = Just Instrument.Marimba
             , octaves = Just ( 4, 4 )
             , pan = Just 0.2
+            , probability = Just 0.8
             , scale = scale
             , volume = Just -12
+            }
+            |> Random.generate NewTrack
+        , Track.random
+            { id = "other"
+            , bars = Just 12
+            , instrument = Just Instrument.Kalimba
+            , octaves = Just ( 5, 5 )
+            , pan = Just 0.4
+            , probability = Just 0.7
+            , scale = scale
+            , volume = Just -16
             }
             |> Random.generate NewTrack
         ]
