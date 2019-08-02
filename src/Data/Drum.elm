@@ -46,27 +46,61 @@ random =
         randomHihat
 
 
-randomSeq : (Note -> Float -> Sequence) -> Generator String -> Generator Track
+randomSeq : (Sequence -> Float -> Sequence) -> Generator String -> Generator Track
 randomSeq handler =
     Random.andThen
         (\note ->
             Random.map (Track note)
                 (Random.float 0 1
-                    |> Random.andThen (handler (Note note "16n" 1) >> Random.constant)
+                    |> Random.andThen (handler (Single (Note note "16n" 1)) >> Random.constant)
                 )
         )
+
+
+m : List Sequence -> Sequence
+m =
+    Multiple
+
+
+x : Sequence
+x =
+    Silence
 
 
 randomKick : Generator Track
 randomKick =
     DrumKit.randomKick
         |> randomSeq
-            (\hit prob ->
-                if prob > 0.5 then
-                    Multiple [ Single hit, Silence ]
+            (\h prob ->
+                if prob < 0.2 then
+                    m [ h, x ]
+
+                else if prob < 0.4 then
+                    m
+                        [ m [ h, x, x, h ]
+                        , m [ x, x, h, x ]
+                        , m [ h, x, x, x ]
+                        , x
+                        ]
+
+                else if prob < 0.6 then
+                    m
+                        [ m [ h, x, x, x ]
+                        , m [ x, x, x, h ]
+                        , m [ x, x, h, x ]
+                        , x
+                        ]
+
+                else if prob < 0.8 then
+                    m
+                        [ m [ h, h, h ]
+                        , x
+                        , h
+                        , x
+                        ]
 
                 else
-                    Multiple [ Single hit ]
+                    m [ h ]
             )
 
 
@@ -74,33 +108,18 @@ randomSnare : Generator Track
 randomSnare =
     DrumKit.randomSnare
         |> randomSeq
-            (\hit prob ->
+            (\h prob ->
                 if prob < 0.5 then
-                    Multiple [ Silence, Single hit ]
+                    m [ x, h ]
 
                 else if prob < 0.75 then
-                    Multiple
-                        [ Silence
-                        , Single hit
-                        , Silence
-                        , Single hit
-                        , Silence
-                        , Single hit
-                        , Silence
-                        , Multiple [ Single hit, Single hit ]
-                        ]
+                    m [ x, h, x, h, x, h, x, m [ h, h ] ]
+
+                else if prob < 0.75 then
+                    m [ x, h, x, h, x, h, x, m [ h, m [ h, h ] ] ]
 
                 else
-                    Multiple
-                        [ Silence
-                        , Single hit
-                        , Silence
-                        , Single hit
-                        , Silence
-                        , Single hit
-                        , Silence
-                        , Multiple [ Single hit, Multiple [ Single hit, Single hit ] ]
-                        ]
+                    m [ x, h, x, h, x, h, x, m [ h, m [ h, h, x, h ] ] ]
             )
 
 
@@ -108,13 +127,13 @@ randomHihat : Generator Track
 randomHihat =
     DrumKit.randomHihat
         |> randomSeq
-            (\hit prob ->
+            (\h prob ->
                 if prob > 0.7 then
-                    Multiple [ Single hit, Single hit, Silence, Single hit ]
+                    m [ h, h, x, h ]
 
                 else if prob > 0.5 then
-                    Multiple [ Multiple [ Single hit, Single hit ] ]
+                    m [ m [ h, h ] ]
 
                 else
-                    Multiple [ Single hit ]
+                    m [ h ]
             )

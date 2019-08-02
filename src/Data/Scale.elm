@@ -73,7 +73,7 @@ takeSeventh scale =
     Random.float 0 1
         |> Random.andThen
             (\prob ->
-                if prob > 0.8 then
+                if prob > 0.9 then
                     Random.constant scale
 
                 else
