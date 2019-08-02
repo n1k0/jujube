@@ -1,4 +1,4 @@
-port module Ports exposing (load, ready, setBpm, setDrumTracks, setTrack, start, stop)
+port module Ports exposing (bar, load, ready, setBpm, setDrumTracks, setTrack, start, stop)
 
 import Json.Encode as Encode
 
@@ -27,6 +27,9 @@ port setTrack : Encode.Value -> Cmd msg
 
 
 -- Subscriptions
+
+
+port bar : (Bool -> msg) -> Sub msg
 
 
 port ready : (Bool -> msg) -> Sub msg

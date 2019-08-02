@@ -34,15 +34,17 @@ type Status
 
 
 type Msg
-    = NewDrumTracks Drum
+    = Bar Bool
+    | NewDrumTracks Drum
     | NewScale (List String)
     | NewTrack Track
     | Play
     | SetReady Bool
     | SetBpm Int
+    | ShouldVary ( Bool, Bool )
     | Stop
     | VaryDrums
-    | VaryNotes
+    | VaryScale
 
 
 init : () -> ( Model, Cmd Msg )
@@ -61,8 +63,8 @@ generateDrums =
     Random.generate NewDrumTracks Drum.random
 
 
-generateNotes : Model -> Cmd Msg
-generateNotes model =
+generateTonalInstruments : Model -> Cmd Msg
+generateTonalInstruments model =
     Cmd.batch
         [ Track.random
             { id = "low"
@@ -111,9 +113,20 @@ generateNotes model =
         ]
 
 
+percentChance : Int -> Random.Generator Bool
+percentChance odds =
+    Random.map (\n -> n < odds) (Random.int 1 100)
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Bar _ ->
+            ( model
+            , Random.pair (percentChance 10) (percentChance 40)
+                |> Random.generate ShouldVary
+            )
+
         NewDrumTracks drumTracks ->
             ( model, drumTracks |> Drum.encode |> Ports.setDrumTracks )
 
@@ -132,7 +145,7 @@ update msg model =
                 newModel =
                     { model | scale = scale }
             in
-            ( newModel, generateNotes newModel )
+            ( newModel, generateTonalInstruments newModel )
 
         Play ->
             case model.status of
@@ -149,7 +162,7 @@ update msg model =
             ( { model | status = Playing }
             , Cmd.batch
                 [ generateDrums
-                , generateNotes model
+                , generateTonalInstruments model
                 , Ports.start ()
                 ]
             )
@@ -157,13 +170,30 @@ update msg model =
         SetBpm bpm ->
             ( { model | bpm = bpm }, Ports.setBpm bpm )
 
+        ShouldVary ( varyDrums, varyScale ) ->
+            ( model
+            , Cmd.batch
+                [ if varyDrums then
+                    generateDrums
+
+                  else
+                    Cmd.none
+                , if varyScale then
+                    Scale.randomNext model.scale
+                        |> Random.generate NewScale
+
+                  else
+                    Cmd.none
+                ]
+            )
+
         Stop ->
             ( { model | status = Ready }, Ports.stop () )
 
         VaryDrums ->
             ( model, generateDrums )
 
-        VaryNotes ->
+        VaryScale ->
             ( { model | tracks = [] }
             , Scale.randomNext model.scale
                 |> Random.generate NewScale
@@ -225,7 +255,7 @@ view model =
                     span []
                         [ button [ onClick Stop ] [ text "◼" ]
                         , button [ onClick VaryDrums ] [ text "Vary drums" ]
-                        , button [ onClick VaryNotes ] [ text "Vary notes" ]
+                        , button [ onClick VaryScale ] [ text "Vary notes" ]
                         ]
             ]
         , model.tracks
@@ -236,7 +266,10 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Ports.ready SetReady
+    Sub.batch
+        [ Ports.ready SetReady
+        , Ports.bar Bar
+        ]
 
 
 main : Program () Model Msg

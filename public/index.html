@@ -67,6 +67,9 @@
 
       app.ports.start.subscribe(function() {
         Tone.Transport.start();
+        Tone.Transport.scheduleRepeat(function(time) {
+          app.ports.bar.send(true);
+        }, "4m");
       });
 
       app.ports.stop.subscribe(function() {
