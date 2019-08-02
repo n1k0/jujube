@@ -41,7 +41,8 @@ type Msg
     | SetReady Bool
     | SetBpm Int
     | Stop
-    | Vary
+    | VaryDrums
+    | VaryNotes
 
 
 init : () -> ( Model, Cmd Msg )
@@ -55,12 +56,15 @@ init _ =
     )
 
 
-generate : Model -> Cmd Msg
-generate model =
+generateDrums : Cmd Msg
+generateDrums =
+    Random.generate NewDrumTracks Drum.random
+
+
+generateNotes : Model -> Cmd Msg
+generateNotes model =
     Cmd.batch
-        [ Drum.random
-            |> Random.generate NewDrumTracks
-        , Track.random
+        [ Track.random
             { id = "low"
             , bars = Just 4
             , instrument = Just Instrument.Piano
@@ -100,7 +104,7 @@ generate model =
             , octaves = Just ( 5, 5 )
             , pan = Just 0.4
             , probability = Just 0.7
-            , scale = model.scale
+            , scale = Scale.penta
             , volume = Just -16
             }
             |> Random.generate NewTrack
@@ -128,7 +132,7 @@ update msg model =
                 newModel =
                     { model | scale = scale }
             in
-            ( newModel, generate newModel )
+            ( newModel, generateNotes newModel )
 
         Play ->
             case model.status of
@@ -144,7 +148,8 @@ update msg model =
         SetReady _ ->
             ( { model | status = Playing }
             , Cmd.batch
-                [ generate model
+                [ generateDrums
+                , generateNotes model
                 , Ports.start ()
                 ]
             )
@@ -155,7 +160,10 @@ update msg model =
         Stop ->
             ( { model | status = Ready }, Ports.stop () )
 
-        Vary ->
+        VaryDrums ->
+            ( model, generateDrums )
+
+        VaryNotes ->
             ( { model | tracks = [] }
             , Scale.randomNext model.scale
                 |> Random.generate NewScale
@@ -216,7 +224,8 @@ view model =
                 Playing ->
                     span []
                         [ button [ onClick Stop ] [ text "◼" ]
-                        , button [ onClick Vary ] [ text "vary" ]
+                        , button [ onClick VaryDrums ] [ text "Vary drums" ]
+                        , button [ onClick VaryNotes ] [ text "Vary notes" ]
                         ]
             ]
         , model.tracks

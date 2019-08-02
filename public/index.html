@@ -42,18 +42,15 @@
 
       function setupDrumKit(samples) {
         const panVol = new Tone.PanVol(0, -2);
-        const compressor = new Tone.Compressor(-10);
+        const compressor = new Tone.Compressor(-16, 10);
         const feedbackDelay = new Tone.FeedbackDelay("16n", 0.1);
-        // const reverb = new Tone.Reverb("4n");
+        // const reverb = new Tone.Freeverb(0.5, 10000);
+        // reverb.wet = 0.2;
 
-        return new Promise((resolve, reject) => {
-          const drums = new Tone.Players(
-            samples.reduce(function(acc, sample) {
-              return { ...acc, [sample]: sample };
-            }, {}),
-            function() {
-              resolve(drums);
-            }
+        return new Promise(resolve => {
+          new Tone.Players(
+            samples.reduce((acc, sample) => ({ ...acc, [sample]: sample }), {}),
+            resolve
           ).chain(panVol, feedbackDelay, compressor, Tone.Master);
         });
       }
