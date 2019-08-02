@@ -91,16 +91,16 @@ pickOne choices =
 randomNext : List String -> Generator (List String)
 randomNext scale =
     if scale == first then
-        pickOne [ second, third, fourth, fifth, sixth ]
+        pickOne [ second, fourth, sixth ]
 
     else if scale == second then
-        pickOne [ first, third, fourth, fifth, sixth ]
+        pickOne [ third, fourth, fifth, sixth ]
 
     else if scale == third then
         pickOne [ first, second, fourth, fifth, sixth ]
 
     else if scale == fourth then
-        pickOne [ first, second, third, fifth, sixth ]
+        pickOne [ first, second, fifth, sixth ]
 
     else if scale == fifth then
         pickOne [ first, fourth ]

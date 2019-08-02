@@ -41,16 +41,11 @@
       }
 
       function setupDrumKit(samples) {
-        const panVol = new Tone.PanVol(0, -10);
-        const compressor = new Tone.Compressor(-16, 10);
-        // const feedbackDelay = new Tone.FeedbackDelay("4n", 0.1);
-        const reverb = new Tone.Freeverb(0.1, 5000).connect(new Tone.Gain(-6));
-
+        const sounds = samples.reduce((acc, sample) => ({ ...acc, [sample]: sample }), {});
         return new Promise(resolve => {
-          new Tone.Players(
-            samples.reduce((acc, sample) => ({ ...acc, [sample]: sample }), {}),
-            resolve
-          ).chain(compressor, reverb, panVol, Tone.Master);
+          new Tone.Players(sounds, function(kit) {
+            resolve(kit.toMaster());
+          });
         });
       }
 
@@ -81,19 +76,19 @@
       });
 
       app.ports.setDrumTracks.subscribe(function(drums) {
-        drumTrack("kick", drums.kick.sequence);
-        drumTrack("snare", drums.snare.sequence);
-        drumTrack("hihat", drums.hihat.sequence);
+        for (const key in drums) {
+          drumTrack(key, drums[key].sequence);
+        }
       });
 
       app.ports.setTrack.subscribe(function(track) {
         const panVol = new Tone.PanVol(track.pan, track.volume);
         const pingPong = new Tone.PingPongDelay("8n", 0);
-        const instrument = new Tone.PolySynth(
-          4,
-          Tone.Synth,
-          instruments[track.instrument]
-        ).chain(pingPong, panVol, Tone.Master);
+        const instrument = new Tone.PolySynth(4, Tone.Synth, instruments[track.instrument]).chain(
+          pingPong,
+          panVol,
+          Tone.Master
+        );
 
         setTrack(track.id, track.sequence, function(time, note) {
           instrument.triggerAttackRelease(note.pitch, note.dur, time, note.vel);

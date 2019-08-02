@@ -123,7 +123,7 @@ update msg model =
     case msg of
         Bar _ ->
             ( model
-            , Random.pair (percentChance 10) (percentChance 50)
+            , Random.pair (percentChance 10) (percentChance 80)
                 |> Random.generate ShouldVary
             )
 
