@@ -68,10 +68,24 @@ range ( min, max ) notes =
         |> List.concat
 
 
+takeSeventh : List String -> Generator (List String)
+takeSeventh scale =
+    Random.float 0 1
+        |> Random.andThen
+            (\prob ->
+                if prob > 0.8 then
+                    Random.constant scale
+
+                else
+                    Random.constant (List.take 3 scale)
+            )
+
+
 pickOne : List (List String) -> Generator (List String)
 pickOne choices =
     RandomList.choose choices
         |> Random.andThen (Tuple.first >> Maybe.withDefault first >> Random.constant)
+        |> Random.andThen takeSeventh
 
 
 randomNext : List String -> Generator (List String)
