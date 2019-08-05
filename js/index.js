@@ -32,34 +32,38 @@ function setTrack(id, sequence, handler) {
 
 function drumTrack(id, sequence) {
   setTrack(id, sequence, function(time, note) {
-    drumKit.get(note.pitch).start(time);
+    try {
+      drumKit.get(note.pitch).start(time);
+    } catch (e) {
+      console.warn("cannot get drum sample", note.pitch);
+    }
   }).probability = 0.99;
 }
 
-function setupDrumKit(samples) {
-  const sounds = samples.reduce((acc, sample) => ({ ...acc, [sample]: sample }), {});
-  return new Promise(resolve => {
+async function setupDrumKit() {
+  const reverb = new Tone.Reverb(1.1);
+  reverb.wet.value = 0.2;
+  await reverb.generate();
+  const panVol = new Tone.PanVol(0, -6);
+  const sounds = instruments.drumSamples.reduce((acc, sample) => ({ ...acc, [sample]: sample }), {});
+  drumKit = await new Promise(resolve => {
     new Tone.Players(sounds, function(kit) {
-      resolve(kit.toMaster());
+      resolve(kit.chain(panVol, reverb, Tone.Master));
     });
   });
 }
 
-app.ports.load.subscribe(function() {
+app.ports.load.subscribe(async function() {
   Tone.start();
   Tone.Master.chain(new Tone.Limiter(-6));
   vuMeter(Tone.Master, document.querySelector(".vuMeter"));
-  setupDrumKit(instruments.drumSamples).then(function(result) {
-    drumKit = result;
-    app.ports.ready.send(true);
-  });
+  await setupDrumKit();
+  app.ports.ready.send(true);
 });
 
 app.ports.start.subscribe(function() {
   Tone.Transport.start();
-  Tone.Transport.scheduleRepeat(function(time) {
-    app.ports.bar.send(true);
-  }, "4m");
+  Tone.Transport.scheduleRepeat(app.ports.bar.send, "4m");
 });
 
 app.ports.stop.subscribe(function() {

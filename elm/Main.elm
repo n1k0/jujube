@@ -34,7 +34,7 @@ type Status
 
 
 type Msg
-    = Bar Bool
+    = Bar Float
     | NewDrumTracks Drum
     | NewScale (List String)
     | NewTrack Track

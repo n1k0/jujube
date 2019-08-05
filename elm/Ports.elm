@@ -29,7 +29,7 @@ port setTrack : Encode.Value -> Cmd msg
 -- Subscriptions
 
 
-port bar : (Bool -> msg) -> Sub msg
+port bar : (Float -> msg) -> Sub msg
 
 
 port ready : (Bool -> msg) -> Sub msg
